@@ -26,58 +26,66 @@
                     </button>
 
                     <div class="card mt-4">
-                        <form action="{{ route('users.store') }}" method="POST">
-                            @csrf
-                            <div class="form-group">
-                                <label for="name">Tên:</label>
-                                <input type="text" name="name" id="name" class="form-control" value="{{ old('name') }}" required>
-                                @error('name') <small class="text-danger">{{ $message }}</small> @enderror
-                            </div>
-                        
-                            <div class="form-group">
-                                <label for="email">Email:</label>
-                                <input type="email" name="email" id="email" class="form-control" value="{{ old('email') }}" required>
-                                @error('email') <small class="text-danger">{{ $message }}</small> @enderror
-                            </div>
-                        
-                            <div class="form-group">
-                                <label for="password">Mật khẩu:</label>
-                                <input type="password" name="password" id="password" class="form-control" required>
-                                @error('password') <small class="text-danger">{{ $message }}</small> @enderror
-                            </div>
-                            <div class="form-group">
-                                <label for="password_confirmation">Xác nhận mật khẩu:</label>
-                                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" required>
-                                @error('password_confirmation') <small class="text-danger">{{ $message }}</small> @enderror
-                            </div>
-                        
-                            <div class="form-group">
-                                <label for="phone_number">Số điện thoại:</label>
-                                <input type="text" name="phone_number" id="phone_number" class="form-control" value="{{ old('phone_number') }}">
-                                @error('phone_number') <small class="text-danger">{{ $message }}</small> @enderror
-                            </div>
-                        
-                            <div class="form-group">
-                                <label for="department_id">Phòng ban:</label>
-                                <select name="department_id" id="department_id" class="form-control" required>
-                                    <option value="">Chọn phòng ban</option>
-                                    @foreach ($departments as $department)
-                                        <option value="{{ $department->id }}">{{ $department->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('department_id') <small class="text-danger">{{ $message }}</small> @enderror
-                            </div>
-                        
-                            
-                        
-                            <div class="form-group">
-                                <label for="position">Chức vụ:</label>
-                                <input type="text" name="position" id="position" class="form-control" value="{{ old('position') }}" required>
-                                @error('position') <small class="text-danger">{{ $message }}</small> @enderror
-                            </div>
-                        
-                            <button type="submit" class="btn btn-primary">Thêm người dùng</button>
-                        </form>
+                        <div class="card-body">
+                            <h4 class="card-title mb-4">Thêm Người Dùng Mới</h4>
+                            <form id="createUserForm" action="{{ route('users.store') }}" method="POST">
+                                @csrf
+                                <div class="form-group">
+                                    <label for="name">Tên:</label>
+                                    <input type="text" name="name" id="name" class="form-control" 
+                                           placeholder="Nhập tên người dùng" value="{{ old('name') }}" required>
+                                    @error('name') <small class="text-danger">{{ $message }}</small> @enderror
+                                </div>
+                    
+                                <div class="form-group">
+                                    <label for="email">Email:</label>
+                                    <input type="email" name="email" id="email" class="form-control" 
+                                           placeholder="Nhập địa chỉ email" value="{{ old('email') }}" required>
+                                    @error('email') <small class="text-danger">{{ $message }}</small> @enderror
+                                </div>
+                    
+                                <div class="form-group">
+                                    <label for="password">Mật khẩu:</label>
+                                    <input type="password" name="password" id="password" class="form-control" 
+                                           placeholder="Nhập mật khẩu" required minlength="6">
+                                    @error('password') <small class="text-danger">{{ $message }}</small> @enderror
+                                </div>
+                    
+                                <div class="form-group">
+                                    <label for="password_confirmation">Xác nhận mật khẩu:</label>
+                                    <input type="password" name="password_confirmation" id="password_confirmation" 
+                                           class="form-control" placeholder="Xác nhận mật khẩu" required>
+                                    @error('password_confirmation') <small class="text-danger">{{ $message }}</small> @enderror
+                                </div>
+                    
+                                <div class="form-group">
+                                    <label for="phone_number">Số điện thoại:</label>
+                                    <input type="tel" name="phone_number" id="phone_number" class="form-control" 
+                                           placeholder="Nhập số điện thoại" value="{{ old('phone_number') }}">
+                                    @error('phone_number') <small class="text-danger">{{ $message }}</small> @enderror
+                                </div>
+                    
+                                <div class="form-group">
+                                    <label for="department_id">Phòng ban:</label>
+                                    <select name="department_id" id="department_id" class="form-control" required>
+                                        <option value="">Chọn phòng ban</option>
+                                        @foreach ($departments as $department)
+                                            <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('department_id') <small class="text-danger">{{ $message }}</small> @enderror
+                                </div>
+                    
+                                <div class="form-group">
+                                    <label for="position">Chức vụ:</label>
+                                    <input type="text" name="position" id="position" class="form-control" 
+                                           placeholder="Nhập chức vụ" value="{{ old('position') }}" required>
+                                    @error('position') <small class="text-danger">{{ $message }}</small> @enderror
+                                </div>
+                    
+                                <button type="submit" class="btn btn-primary btn-block">Thêm Người Dùng</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\UsersExport;
+use App\Imports\UsersImport;
 use App\Models\Department;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -16,15 +18,25 @@ use Illuminate\Support\Facades\Validator;
 class UserController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('department')->get();
+        $search = $request->input('search'); // Lấy từ khóa tìm kiếm từ request
+        $query = User::with('department');  // Khởi tạo query
+    
+        if ($search) {
+            // Thêm điều kiện tìm kiếm theo tên, email hoặc chức vụ
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('email', 'LIKE', "%{$search}%")
+                  ->orWhere('position', 'LIKE', "%{$search}%");
+            });
+        }
+    
+        $users = $query->paginate(2); // Phân trang kết quả
         $departments = Department::all(); // Lấy tất cả phòng ban
-        $data = User::paginate(1);
-        return view('fe_user/users', compact('users', 'departments', 'data'));
+    
+        return view('fe_user/users', compact('users', 'departments', 'search'));
     }
-
-   
 
 
     public function destroy($id)
@@ -103,5 +115,22 @@ class UserController extends Controller
 
         return redirect()->route('users')->with('success', 'User updated successfully.');
     }
+
+    public function importPost(Request $request){
+        $request->validate([
+            'import_file' =>[
+                'required',
+                'file',
+                'mimes:xls,xlsx'
+            ],
+        ]);
+        Excel::import(new UsersImport, $request->file('import_file'));
+
+        return redirect()->back()->with('success', 'Import successfully.');
+    }
     
+    public function export(){
+        $filename = "users.xlsx";
+        return Excel::download(new UsersExport, $filename);
+    }
 }

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\UserController;
+use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +25,7 @@ Route::middleware('web')->group(function () {
     Route::post('/login', [LoginController::class, 'loginPost']);
     Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
     // Route::get('/register', [LoginController::class, 'register'])->name('register');
+
 });
 
 // department
@@ -36,6 +38,7 @@ Route::get('/departments/{id}/members', [DepartmentController::class, 'showMembe
 // user 
 Route::group(['middleware' => ['web']], function () {
 Route::get('/users', [UserController::class, 'index'])->name('users');
+Route::get('/users/search', [UserController::class, 'search'])->name('users.search');
 
 Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
 // Route để hiển thị form thêm người dùng
@@ -45,3 +48,9 @@ Route::post('/users/store', [UserController::class, 'store'])->name('users.store
 Route::post('/users/update/{id}', [UserController::class, 'update'])->name('users.update');
 
 });
+
+// import dữ liệu 
+Route::post('users/import',[UserController::class,'importPost'])->name('users.import');
+
+//export dữ liệu 
+Route::get('users/export', [UserController::class, 'export'])->name('users.export');

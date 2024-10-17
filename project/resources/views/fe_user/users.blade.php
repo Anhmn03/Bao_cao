@@ -26,63 +26,117 @@
             <div id="content">
                 @include('fe.topbar') <!-- Topbar -->
 
-                <div class="container-fluid">
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Danh sách người dùng</h1>
+             
+                    <div class="container-fluid">
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <h1 class="h3 mb-0 text-gray-800">Danh sách người dùng</h1>
+                            
+                            <form action="{{ route('users') }}" method="GET" class="mb-3">
+                                <div class="input-group">
+                                    <input type="text" name="search" value="{{ $search ?? '' }}" 
+                                           placeholder="Nhập tên, email hoặc chức vụ" class="form-control">
+                                    <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                                </div>
+                            </form>
+                        </div>
+                    
+                        <!-- Card chứa Import và Export -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Form Nhập Dữ Liệu Từ Excel -->
+                                    <div class="col-md-6">
+                                        <form action="{{ route('users.import') }}" method="POST" enctype="multipart/form-data">
+                                            @csrf
+                                            <div class="input-group">
+                                                <input type="file" name="import_file" class="form-control" required>
+                                                <div class="input-group-append">
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="fas fa-file-import"></i> Nhập từ Excel
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div  class="col-md-3 text-right">
+                                        <a href="{{ route('users.create') }}" class="btn btn-success">
+                                        <i class="fas fa-user-plus"></i> Thêm Nhân Viên
+                                        </a>
+                                     </div>
+                                    
+                                    <!-- Form Xuất Dữ Liệu -->
+                                    <div class="col-md-3 text-right">
+                                        <form action="{{ route('users.export') }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-info">
+                                                <i class="fas fa-file-export"></i> Xuất Dữ Liệu
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <!-- Danh sách người dùng -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered w-100">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Tên</th>
+                                        <th>Email</th>
+                                        <th>Số điện thoại</th>
+                                        <th>Chức vụ</th>
+                                        <th>Phòng ban</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($users as $user)
+                                        <tr>
+                                            <td>{{ $user->id }}</td>
+                                            <td>{{ $user->name }}</td>
+                                            <td>{{ $user->email }}</td>
+                                            <td>{{ $user->phone_number }}</td>
+                                            <td>{{ $user->position }}</td>
+                                            <td>{{ $user->department->name ?? 'Chưa xác định' }}</td>
+                                            <td>
+                                                <!-- Nút Sửa -->
+                                                <button class="btn btn-warning" data-toggle="modal" data-target="#editUserModal" 
+                                                    data-id="{{ $user->id }}" 
+                                                    data-name="{{ $user->name }}" 
+                                                    data-email="{{ $user->email }}" 
+                                                    data-phone="{{ $user->phone_number }}" 
+                                                    data-position="{{ $user->position }}"
+                                                    data-department="{{ $user->department->name ?? 'Chưa xác định' }}">
+                                                    Cập nhật
+                                                </button>
+                    
+                                                <!-- Nút Xóa -->
+                                                <form action="{{ route('users.destroy', $user->id) }}" method="POST" 
+                                                      style="display:inline;" id="delete-form-{{ $user->id }}">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="button" class="btn btn-danger" 
+                                                            onclick="confirmDelete({{ $user->id }})">
+                                                        Xóa
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="text-center">Không có người dùng nào.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    
+                        <div class="d-flex justify-content-center mt-3">
+                            {{ $users->links() }}
+                        </div>
                     </div>
-                    <a href="{{ route('users.create') }}" class="btn btn-primary">Thêm Nhân Viên</a>
-                    <table border="1" cellpadding="10" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Tên</th>
-                                <th>Email</th>
-                                <th>Số điện thoại</th>
-                                <th>Chức vụ</th>
-                                <th>Phòng ban</th>
-                                <th>Hành động</th> <!-- Thêm cột Hành động -->
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($users as $user)
-                                <tr>
-                                    <td>{{ $user->id }}</td>
-                                    <td>{{ $user->name }}</td>
-                                    <td>{{ $user->email }}</td>
-                                    <td>{{ $user->phone_number }}</td>
-                                    <td>{{ $user->position }}</td>
-                                    <td>{{ $user->department->name ?? 'Chưa xác định' }}</td>
-                                    <td>
-                                        <!-- Nút Sửa -->
-                                        <button class="btn btn-warning" data-toggle="modal" data-target="#editUserModal" 
-                                            data-id="{{ $user->id }}" 
-                                            data-name="{{ $user->name }}" 
-                                            data-email="{{ $user->email }}" 
-                                            data-phone="{{ $user->phone_number }}" 
-                                            data-position="{{ $user->position }}"
-                                            data-department="{{ $user->department->name ?? 'Chưa xác định' }}">
-                                            Cập nhật
-                                        </button>
-                                   
-                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST" style="display:inline;" id="delete-form-{{ $user->id }}">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" class="btn btn-danger" onclick="confirmDelete({{ $user->id }})"> Xóa </button>
-                                    </form>
-                                </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7">Không có người dùng nào.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                    <div class="d-flex justify-content-center">
-                        {{ $data->links() }}
-                    </div>
-                </div>
-            </div>
 
             <!-- Modal sửa người dùng -->
             <div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel" aria-hidden="true">
