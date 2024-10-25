@@ -8,15 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class User_attendance extends Model
 {
     use HasFactory;
-    protected $table = 'user_attendances';
+    protected $table = 'user_attendance';
     protected $fillable = [
-        'time',
-        'type',
-        'user_id',
-        'create_at',
-        'create_by',
-        'update_at',
-        'update_by',
+      'time',
+    'type',
+    'user_id',
+    'created_at',
+    'created_by',
+    'updated_at',
+    'updated_by',
     ];
     public function user()
     {
@@ -28,4 +28,5 @@ class User_attendance extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+    
 }

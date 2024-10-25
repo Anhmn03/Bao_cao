@@ -20,11 +20,11 @@
 
 <body id="page-top">
     <div id="wrapper">
-        @include('fe.slidebar') <!-- Sidebar -->
+        @include('fe_admin.slidebar') <!-- Sidebar -->
 
         <div id="content-wrapper" class="d-flex flex-column">
             <div id="content">
-                @include('fe.topbar') <!-- Topbar -->
+                @include('fe_admin.topbar') <!-- Topbar -->
 
              
                     <div class="container-fluid">
@@ -37,41 +37,66 @@
                                            placeholder="Nhập tên, email hoặc chức vụ" class="form-control">
                                     <button type="submit" class="btn btn-primary">Tìm kiếm</button>
                                 </div>
+
                             </form>
+                            @if (session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if (session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif
                         </div>
                     
                         <!-- Card chứa Import và Export -->
                         <div class="card mb-4">
                             <div class="card-body">
-                                <div class="row">
-                                    <!-- Form Nhập Dữ Liệu Từ Excel -->
-                                    <div class="col-md-6">
-                                        <form action="{{ route('users.import') }}" method="POST" enctype="multipart/form-data">
+                                <div class="row mb-3 align-items-center">
+                                    <!-- Nút Nhập Dữ Liệu -->
+                                    <div class="col-md-3">
+                                        <form action="{{ route('users.import') }}" method="POST" enctype="multipart/form-data" id="importForm">
                                             @csrf
                                             <div class="input-group">
-                                                <input type="file" name="import_file" class="form-control" required>
+                                                <input type="file" name="import_file" class="form-control" id="importFile" style="display: none;" required>
                                                 <div class="input-group-append">
-                                                    <button type="submit" class="btn btn-primary">
+                                                    <button type="submit" class="btn btn-primary" id="submitBtn" style="display: none;">
                                                         <i class="fas fa-file-import"></i> Nhập từ Excel
                                                     </button>
                                                 </div>
                                             </div>
                                         </form>
+                                        <button class="btn btn-primary" id="importDataBtn">
+                                            <i class="fas fa-file-import"></i> Nhập dữ liệu
+                                        </button>
+                                        <a href="{{ route('export.template') }}" class="btn btn-primary">Tải Mẫu Excel</a>
                                     </div>
-                                    <div  class="col-md-3 text-right">
-                                        <a href="{{ route('users.create') }}" class="btn btn-success">
-                                        <i class="fas fa-user-plus"></i> Thêm Nhân Viên
-                                        </a>
-                                     </div>
                                     
-                                    <!-- Form Xuất Dữ Liệu -->
-                                    <div class="col-md-3 text-right">
-                                        <form action="{{ route('users.export') }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="btn btn-info">
+
+                                    <!-- Nút Xuất Dữ Liệu -->
+                                    <div class="col-md-3 text-center">
+                                        <form action="{{ route('users.export') }}" method="GET">
+                                            <button type="submit" class="btn btn-info w-100">
                                                 <i class="fas fa-file-export"></i> Xuất Dữ Liệu
                                             </button>
                                         </form>
+                                    </div>
+                        
+                                    <!-- Nút Thêm Nhân Viên -->
+                                    <div class="col-md-3 text-center">
+                                        <a href="{{ route('users.create') }}" class="btn btn-success w-100">
+                                            <i class="fas fa-user-plus"></i> Thêm Nhân Viên
+                                        </a>
+                                    </div>
+                        
+                                    <!-- Nút Xóa Người Dùng Đã Chọn -->
+                                    <div class="col-md-3 text-center">
+                                        <button type="button" class="btn btn-danger w-100" onclick="confirmBulkDelete()">
+                                            <i class="fas fa-trash"></i> Xóa Người Dùng Đã Chọn
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -79,58 +104,59 @@
                     
                         <!-- Danh sách người dùng -->
                         <div class="table-responsive">
-                            <table class="table table-bordered w-100">
-                                <thead class="thead-dark">
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Tên</th>
-                                        <th>Email</th>
-                                        <th>Số điện thoại</th>
-                                        <th>Chức vụ</th>
-                                        <th>Phòng ban</th>
-                                        <th>Hành động</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse ($users as $user)
+                            <form id="deleteUsersForm" method="POST" action="{{ route('users.destroy') }}">
+                                @csrf
+                                <table class="table table-bordered w-100">
+                                    {{-- <div class="d-flex justify-content-between mt-3">
+                                        <button type="button" class="btn btn-danger" onclick="confirmBulkDelete()">Xóa Người Dùng Đã Chọn</button>
+                                    </div> --}}
+                                   
+                                    <thead class="thead-dark">
                                         <tr>
-                                            <td>{{ $user->id }}</td>
-                                            <td>{{ $user->name }}</td>
-                                            <td>{{ $user->email }}</td>
-                                            <td>{{ $user->phone_number }}</td>
-                                            <td>{{ $user->position }}</td>
-                                            <td>{{ $user->department->name ?? 'Chưa xác định' }}</td>
-                                            <td>
-                                                <!-- Nút Sửa -->
-                                                <button class="btn btn-warning" data-toggle="modal" data-target="#editUserModal" 
-                                                    data-id="{{ $user->id }}" 
-                                                    data-name="{{ $user->name }}" 
-                                                    data-email="{{ $user->email }}" 
-                                                    data-phone="{{ $user->phone_number }}" 
-                                                    data-position="{{ $user->position }}"
-                                                    data-department="{{ $user->department->name ?? 'Chưa xác định' }}">
-                                                    Cập nhật
-                                                </button>
-                    
-                                                <!-- Nút Xóa -->
-                                                <form action="{{ route('users.destroy', $user->id) }}" method="POST" 
-                                                      style="display:inline;" id="delete-form-{{ $user->id }}">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="button" class="btn btn-danger" 
-                                                            onclick="confirmDelete({{ $user->id }})">
-                                                        Xóa
-                                                    </button>
-                                                </form>
-                                            </td>
+                                            <th>
+                                                <input type="checkbox" id="select-all">
+                                            </th>
+                                            <th>STT</th>
+                                            <th>Tên</th>
+                                            <th>Email</th>
+                                            <th>Số điện thoại</th>
+                                            <th>Chức vụ</th>
+                                            <th>Phòng ban</th>
                                         </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="7" class="text-center">Không có người dùng nào.</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($users as $user)
+                                            <tr>
+                                                <td>
+                                                    <input type="checkbox" name="user_ids[]" value="{{ $user->id }}">
+                                                </td>
+                                                <td>{{ $loop->iteration }}</td>
+                                                <td>{{ $user->name }}</td>
+                                                <td>{{ $user->email }}</td>
+                                                <td>{{ $user->phone_number }}</td>
+                                                <td>{{ $user->position }}</td>
+                                                <td>
+                                                    @if ($user->department)
+                                                        {{ $user->department->name }} 
+                                                        @if ($user->department->parent_id)
+                                                            - {{ $user->department->parent->name ?? 'Chưa xác định' }}
+                                                        @endif
+                                                    @else
+                                                        Chưa xác định
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="7" class="text-center">Không có người dùng nào.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                                
+                                
+                            </form>
+                        </div>
                         </div>
                     
                         <div class="d-flex justify-content-center mt-3">
@@ -213,49 +239,43 @@
             }
         }
         </script>
-    <script>
-        $(document).ready(function() {
-            $('#editUserModal').on('show.bs.modal', function (event) {
-                var button = $(event.relatedTarget); // Nút Sửa được nhấn
-                var id = button.data('id');
-                var name = button.data('name');
-                var email = button.data('email');
-                var phone = button.data('phone');
-                var position = button.data('position');
-                var department = button.data('department');
-
-                // Điền dữ liệu vào modal
-                var modal = $(this);
-                modal.find('#userId').val(id);
-                modal.find('#userName').val(name);
-                modal.find('#userEmail').val(email);
-                modal.find('#userPhone').val(phone);
-                modal.find('#userPosition').val(position);
-                modal.find('#userDepartment').val(department);
-
-                // Cập nhật hành động form
-                $('#editUserForm').attr('action', '/users/' + id); // Cập nhật action của form
-            });
-        });
-
-        // Xử lý sự kiện gửi form
-        $('#editUserForm').on('submit', function (e) {
-    e.preventDefault(); // Prevent default form submission
-
-    $.ajax({
-        url: $(this).attr('action'),
-        method: 'PUT', // Use PUT explicitly here
-        data: $(this).serialize(),
-        success: function (response) {
-            alert('Người dùng đã được cập nhật.');
-            location.reload(); // Reload page on success
-        },
-        error: function (xhr) {
-            alert('Có lỗi xảy ra.');
-        }
+    
+</script>
+<script>
+    document.getElementById('importDataBtn').addEventListener('click', function() {
+        // Kích hoạt ô input file
+        document.getElementById('importFile').click();
     });
-});
-    </script>
+
+    // Thêm sự kiện lắng nghe cho ô input file
+    document.getElementById('importFile').addEventListener('change', function() {
+        // Tự động gửi form khi chọn file
+        document.getElementById('importForm').submit();
+    });
+</script>
+<script>
+    document.getElementById('select-all').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('input[name="user_ids[]"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+    });
+
+    function confirmBulkDelete() {
+        const form = document.getElementById('deleteUsersForm');
+        const selectedCheckboxes = form.querySelectorAll('input[name="user_ids[]"]:checked');
+
+        if (selectedCheckboxes.length === 0) {
+            alert('Vui lòng chọn ít nhất một người dùng để xóa.');
+            return;
+        }
+
+        if (confirm('Bạn có chắc chắn muốn xóa những người dùng đã chọn?')) {
+            form.submit(); // Gửi form
+        }
+    }
+</script>
+   
 
     <!-- Bootstrap core JavaScript-->
     <script src="fe-access/vendor/jquery/jquery.min.js"></script>

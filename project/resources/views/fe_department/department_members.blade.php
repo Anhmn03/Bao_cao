@@ -33,56 +33,73 @@
 
 <body id="page-top">
     <div id="wrapper">
-        @include('fe.slidebar') <!-- Thanh bên -->
+        @include('fe_admin.slidebar') <!-- Thanh bên -->
 
         <div id="content-wrapper" class="d-flex flex-column">
             <div id="content">
-                @include('fe.topbar') <!-- Thanh trên -->
+                @include('fe_admin.topbar') <!-- Thanh trên -->
 
                 <div class="container-fluid">
                     <button onclick="window.history.back();" class="btn btn-secondary mt-4">
                         <i class="fas fa-arrow-left"></i> Quay lại
                     </button>
                     @if($department)
-                        <h1 class="mt-4">Danh sách thành viên: {{ $department->name }}</h1>
+                    <h1 class="mt-4">Danh sách thành viên: {{ $department->name }}</h1>
+                
+                    <div class="mb-3">
+                        <span>Trạng thái phòng ban: </span>
+                        <span class="badge {{ $department->status ? 'bg-success' : 'bg-secondary' }}">
+                            {{ $department->status ? 'Hoạt động' : 'Không hoạt động' }}
+                        </span>
+                        <!-- Form thay đổi trạng thái -->
+                        <form action="{{ route('departments.updateStatus', $department->id) }}" method="POST" class="d-inline-block">
+                            @csrf
+                            @method('PATCH')  <!-- Thêm method PATCH -->
                         
-                        <div class="card mt-4">
-                           
-                            <div class="card-body table-responsive">
-                                <table class="table table-bordered table-hover align-middle">
-                                    <thead class="thead-light">
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Tên</th>
-                                            <th>Email</th>
-                                            <th>Số điện thoại</th>
-                                            <th>Chức vụ</th>
-                                            <th>Hành động</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse ($department->users as $user)
-                                            <tr>
-                                                <td>{{ $user->id }}</td>
-                                                <td>{{ $user->name }}</td>
-                                                <td>{{ $user->email }}</td>
-                                                <td>{{ $user->phone_number }}</td>
-                                                <td>{{ $user->position }}</td>
-                                                <td>
-                                                    <a class="btn btn-sm btn-primary me-1" >Sửa</a>
-                                                    <a class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                                                        Xóa
-                                                    </a>                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="6" class="text-center">Không có thành viên nào trong phòng ban này.</td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
+                            <input type="hidden" name="status" value="{{ $department->status ? 0 : 1 }}">
+                            <button type="submit" class="btn btn-sm {{ $department->status ? 'btn-danger' : 'btn-success' }}">
+                                {{ $department->status ? 'Tắt' : 'Bật' }}
+                            </button>
+                        </form>
+                    </div>
+                
+                    <div class="card mt-4">
+                        <div class="card-body table-responsive">
+                            <table class="table table-bordered table-hover align-middle">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>STT</th>
+                                        <th>Tên</th>
+                                        <th>Email</th>
+                                        <th>Số điện thoại</th>
+                                        <th>Chức vụ</th>
+                                        <th>Tổ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($users as $user)
+                                    <tr>
+                                        <td>{{ $loop->iteration }}</td>
+                                        <td>{{ $user->name }}</td>
+                                        <td>{{ $user->email }}</td>
+                                        <td>{{ $user->phone_number }}</td>
+                                        <td>{{ $user->position }}</td>
+                                        <td>            @if ($user->department)
+                                            {{ $user->department->name }} 
+                                        @else
+                                            Chưa xác định
+                                        @endif
+                                      </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center">Không có thành viên nào trong các phòng ban này.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                            </table>
                         </div>
+                    </div>
                     @else
                         <div class="alert alert-danger mt-4">
                             Phòng ban không tồn tại hoặc đã bị xóa.

@@ -31,35 +31,41 @@
         <!-- Nav Item - User Information -->
         <li class="nav-item dropdown no-arrow">
             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-             data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ auth()->user()->name }}</span>
-                 <img class="img-profile rounded-circle" 
-                 src="{{ asset('img/undraw_profile.svg') }}" alt="User Avatar" width="40" height="40">
-                        </a>
-
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ auth()->user()->name ?? 'Khách' }}
+                </span>
+                <img class="img-profile rounded-circle"
+                    src="fe-access/img/undraw_profile.svg">
+            </a>
             <!-- Dropdown - User Information -->
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                 aria-labelledby="userDropdown">
-                <a class="dropdown-item" href="#">
+                @if (auth()->user() && auth()->user()->role == 2)
+                <a class="dropdown-item"href="{{ route('users.show', Auth::user()->id) }}">
                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                    Profile
+                    Thông tin cá nhân 
                 </a>
-                <a class="dropdown-item" href="#">
-                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                    Settings
-                </a>
-                <a class="dropdown-item" href="#">
-                    <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-                    Activity Log
-                </a>
+            @endif
+                
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="{{route('logout')}}"  >
-                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                    Logout
-                </a>
+                <a class="dropdown-item" href="#" 
+   onclick="return confirmLogout();">
+    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+    Đăng xuất
+</a>
+
+
             </div>
         </li>
 
-    </ul>
 
+    </ul>
+    <script>
+        function confirmLogout() {
+            if (confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
+                window.location.href = "{{ route('logout') }}";
+            }
+            return false; // Ngăn chặn hành động mặc định nếu nhấn Cancel
+        }
+    </script>
 </nav>

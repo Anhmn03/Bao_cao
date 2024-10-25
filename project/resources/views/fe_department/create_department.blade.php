@@ -15,11 +15,11 @@
 
 <body id="page-top">
     <div id="wrapper">
-        @include('fe.slidebar') <!-- Thanh bên -->
+        @include('fe_admin.slidebar') <!-- Thanh bên -->
 
         <div id="content-wrapper" class="d-flex flex-column">
             <div id="content">
-                @include('fe.topbar') <!-- Thanh trên -->
+                @include('fe_admin.topbar') <!-- Thanh trên -->
 
                 <div class="container-fluid">
                     <button onclick="window.history.back();" class="btn btn-secondary mt-4">

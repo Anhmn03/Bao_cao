@@ -53,23 +53,21 @@
                                         <div class="form-group">
                                             <input type="email" name="email" class="form-control form-control-user" id="exampleInputEmail" 
                                                    aria-describedby="emailHelp" placeholder="Tên đăng nhập...">
+                                                   @error('email') <small class="text-danger">{{ $message }}</small> @enderror
+
                                         </div>
                                         <div class="form-group">
                                             <input type="password" name="password" class="form-control form-control-user" id="exampleInputPassword" 
                                                    placeholder="Mật khẩu ">
+                                                   @error('password') <small class="text-danger">{{ $message }}</small> @enderror
                                         </div>
-                                        <div class="form-group">
-                                            <div class="custom-control custom-checkbox small">
-                                                <input type="checkbox" class="custom-control-input" id="customCheck">
-                                                <label class="custom-control-label" for="customCheck">Ghi nhớ đăng nhập</label>
-                                            </div>
-                                        </div>
+                                        
                                         <button type="submit" class="btn btn-primary btn-user btn-block">Đăng nhập</button>
                                         <hr>
                                     </form>
                                     <hr>
                                     <div class="text-center">
-                                        <a class="small" href="forgot-password.html">Quên mật khẩu?</a>
+                                        {{-- <a class="small" href="{{route('forgot')}}">Quên mật khẩu?</a> --}}
                                     </div>
                                     <div class="text-center">
                                         {{-- <a class="small" href="{{route('register')}}">Tạo tài khoản</a> --}}

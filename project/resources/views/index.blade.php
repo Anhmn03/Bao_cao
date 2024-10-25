@@ -61,6 +61,11 @@
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span >Phòng ban</span></a>
             </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="{{ route('departments') }}">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span >Bảng chấm công</span></a>
+            </li>
             
 
             <!-- Nav Item - Utilities Collapse Menu -->
@@ -529,20 +534,7 @@
     </a>
   
     <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-              
-            </div>
-        </div>
-    </div>
+    
 
     <!-- Bootstrap core JavaScript-->
     <script src="fe-access/vendor/jquery/jquery.min.js"></script>

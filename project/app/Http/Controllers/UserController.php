@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\UsersExport;
-use App\Imports\UsersImport;
+
 use App\Models\Department;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Symfony\Component\Routing\Annotation\Route;
 use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
-
-
+use App\Exports\UsersExport;
+use App\Exports\UserTemplateExport;
+use App\Imports\UsersImport;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Http\Request;
 
 
 class UserController extends Controller
@@ -22,76 +21,133 @@ class UserController extends Controller
     {
         $search = $request->input('search'); // Lấy từ khóa tìm kiếm từ request
         $query = User::with('department');  // Khởi tạo query
-    
+
         if ($search) {
             // Thêm điều kiện tìm kiếm theo tên, email hoặc chức vụ
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('email', 'LIKE', "%{$search}%")
-                  ->orWhere('position', 'LIKE', "%{$search}%");
+                    ->orWhere('email', 'LIKE', "%{$search}%")
+                    ->orWhere('position', 'LIKE', "%{$search}%");
             });
         }
-    
-        $users = $query->paginate(2); // Phân trang kết quả
+
+        $users = $query->paginate(5); // Phân trang kết quả
         $departments = Department::all(); // Lấy tất cả phòng ban
-    
+
         return view('fe_user/users', compact('users', 'departments', 'search'));
     }
 
 
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        $user = User::findOrFail($id);
-        $user->delete();
-        return redirect()->route('users')->with('success', 'User deleted successfully.');
+        $userIds = $request->input('user_ids'); // Lấy danh sách ID người dùng từ request
+
+        if ($userIds) {
+            // Lọc ra các user không phải admin (role != 1) để xóa
+            $usersToDelete = User::whereIn('id', $userIds)
+                ->where('role', '!=', 1)
+                ->pluck('id'); // Lấy danh sách ID hợp lệ
+
+            if ($usersToDelete->isEmpty()) {
+                return redirect()->route('users')->with('error', 'Không thể xóa admin hoặc không có người dùng hợp lệ để xóa.');
+            }
+
+            User::destroy($usersToDelete); // Xóa người dùng hợp lệ
+
+            return redirect()->route('users')->with('success', 'Người dùng đã được xóa thành công (ngoại trừ admin).');
+        }
+
+        return redirect()->route('users')->with('error', 'Vui lòng chọn người dùng để xóa.');
     }
-  
-    public function create()
+    private function getDepartments($parentId = 0)
     {
-        $departments = Department::all(); // Lấy tất cả phòng ban
-        return view('fe_user/create_user', compact('departments')); // Đảm bảo truyền biến ở đây
+        return Department::where('parent_id', $parentId)->get();
     }
 
+    public function create(Request $request)
+    {
+        $departments = $this->getDepartments(); // Lấy phòng ban cha
+
+        // Lấy phòng ban con nếu đã chọn phòng ban cha
+        $subDepartments = $request->has('parent_id') ? $this->getDepartments($request->input('parent_id')) : [];
+
+        return view('fe_user.create_user', compact('departments', 'subDepartments'));
+    }
     public function store(Request $request)
     {
-        
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email', // Kiểm tra email duy nhất
-            'password' => 'required|string|min:8|confirmed', // Kiểm tra mật khẩu
-            'phone_number' => 'required|string|max:15', // Kiểm tra số điện thoại
+            'email' => [
+                'required',
+                'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                'max:255',
+                'unique:users,email',
+            ],
+            'password' => 'required|string|min:8|confirmed',
+            'phone_number' => [
+                'required',
+                'regex:/^84[0-9]{9,10}$/',
+            ],
             'position' => 'required|string|max:100',
-            'department_id' => 'required|exists:departments,id', // Kiểm tra department_id tồn tại
+            'department_id' => 'required|exists:departments,id',
+            'role' => 'required|integer', // Đảm bảo trường role phải được nhập
+
+        ], [
+            'email.regex' => 'Email không hợp lệ. Vui lòng nhập đúng định dạng.',
+            'phone_number.regex' => 'Số điện thoại phải bắt đầu bằng 84 và có 9-10 chữ số.',
         ]);
+    
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
     
-       
+        // Kiểm tra xem người dùng đã tồn tại chưa
+        if (User::where('email', $request->email)->exists()) {
+            return back()->with('error', 'Email đã tồn tại.')->withInput();
+        }
+    
         User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => bcrypt($request->password), // Mã hóa mật khẩu
+            'password' => bcrypt($request->password),
             'phone_number' => $request->phone_number,
             'department_id' => $request->department_id,
-            'position' => $request->position, // Lưu chức vụ người dùng
+            'position' => $request->position,
             'status' => 1,
-            'created_by' => Auth::id(), // Ghi nhận ID của người tạo
-            'updated_by' => Auth::id(), // Ghi nhận ID của người cập nhật
+            'role' => $request->role , // Gán role mặc định nếu không có
+            'created_by' => Auth::id(),
+            'updated_by' => Auth::id(),
         ]);
-
-      
-        return redirect()->route('users')->with('success', 'User created successfully.');
+    
+        return redirect()->route('users')->with('success', 'Người dùng đã được tạo thành công.');
     }
-
-    public function edit($id)
+    public function show($id)
     {
-        $user = User::findOrFail($id);
-        $departments = Department::all();
+        $user = User::with('department')->findOrFail($id); // Lấy thông tin user cùng phòng ban
+        $departments = Department::all(); // Lấy danh sách phòng ban
 
-        return view('fe_user/edit_user', compact('user', 'departments'));
+        return view('fe_user.profile', compact('user', 'departments'));
     }
 
+    public function edit(Request $request, $id)
+    {
+        $user = User::with('department')->findOrFail($id); // Lấy thông tin user cùng phòng ban
+    
+        // Lấy tất cả phòng ban cha (parent_id = 0)
+        $departments = Department::where('parent_id', 0)->get();
+    
+        // Khởi tạo biến subDepartments là một mảng rỗng
+        $subDepartments = [];
+    
+        // Nếu người dùng đã chọn phòng ban cha, lấy phòng ban con
+        if ($request->has('parent_department_id')) {
+            $subDepartments = Department::where('parent_id', $request->input('parent_department_id'))->get();
+        } elseif ($user->department && $user->department->parent_id) {
+            $subDepartments = Department::where('parent_id', $user->department->parent_id)->get();
+        }
+    
+        return view('fe_user/profile', compact('user', 'departments', 'subDepartments'));
+    }
     // Cập nhật thông tin người dùng
     public function update(Request $request, $id)
     {
@@ -110,27 +166,43 @@ class UserController extends Controller
         }
 
         $user->update($request->only([
-            'name', 'email', 'phone_number', 'position', 'department_id'
+            'name',
+            'email',
+            'phone_number',
+            'position',
+            'department_id'
         ]) + ['updated_by' => Auth::id()]);
 
-        return redirect()->route('users')->with('success', 'User updated successfully.');
+        return redirect()->route('attendance')->with('success', 'User updated successfully.');
     }
 
-    public function importPost(Request $request){
+    // public function export() {
+    //     $users = User::all(); // Lấy tất cả người dùng
+    //     dd($users); // Hiển thị dữ liệu
+    //     return Excel::download(new UsersExport, 'users.xlsx');
+    // }
+    public function importPost(Request $request)
+    {
         $request->validate([
-            'import_file' =>[
+            'import_file' => [
                 'required',
                 'file',
                 'mimes:xls,xlsx'
             ],
         ]);
-        Excel::import(new UsersImport, $request->file('import_file'));
+        try {
+            Excel::import(new UsersImport, $request->file('import_file'));
+            return redirect()->route('users')->with('success', 'Import thành công.');
+        } catch (\Exception $e) {
+            return redirect()->route('users')->with('error', 'Import thất bại. Vui lòng kiểm tra file mẫu.');
+        }
+    }
 
-        return redirect()->back()->with('success', 'Import successfully.');
-    }
-    
-    public function export(){
-        $filename = "users.xlsx";
-        return Excel::download(new UsersExport, $filename);
-    }
+   public function export(){
+    return Excel::download(new UsersExport, 'users.xlsx');
+   }
+
+   public function exportTemplate(){
+    return Excel::download(new UserTemplateExport, 'users_template.xlsx');
+   }
 }
