@@ -42,30 +42,73 @@
                     @endif
 
                     <!-- Bảng báo cáo -->
-                    <table class="table table-bordered table-hover shadow-sm">
-                        <thead class="thead-dark">
+                    <form action="{{ route('reportAllUsers') }}" method="GET">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="department" class="form-label">Phòng ban</label>
+                                <select id="department" name="department" class="form-select">
+                                    <option value="">Tất cả</option>
+                                    <!-- Giả sử bạn có danh sách phòng ban -->
+                                    @foreach($departments as $department)
+                                        <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="start_date" class="form-label">Từ ngày</label>
+                                <input type="date" id="start_date" name="start_date" class="form-control" value="{{ request('start_date') }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="end_date" class="form-label">Đến ngày</label>
+                                <input type="date" id="end_date" name="end_date" class="form-control" value="{{ request('end_date') }}">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Lọc</button>
+                    </form>
+                
+                    <!-- Thông báo lỗi nếu có -->
+                    @if(session('error'))
+                        <div class="alert alert-danger mt-3">{{ session('error') }}</div>
+                    @endif
+                
+                    <!-- Bảng báo cáo -->
+                    <table class="table table-bordered mt-4">
+                        <thead>
                             <tr>
-                                <th>Tên nhân viên</th>
-                                <th>Tổng số ngày làm việc</th>
-                                <th>Số ngày đủ 8 tiếng</th>
+                                <th>Họ và tên</th>
+                                <th>Chức vụ</th>
+                                <th>Ngày tháng</th>
+                                <th>Check-In</th>
+                                <th>Check-Out</th>
+                                <th>Số giờ làm việc</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($reportData as $data)
-                                <tr>
-                                    <td>{{ $data['name'] }}</td>
-                                    <td>{{ $data['totalDays'] }}</td>
-                                    <td>{{ $data['daysWithFullHours'] }}</td>
-                                </tr>
+                            @foreach($reportData as $data)
+                                @foreach($data['attendances'] as $attendance)
+                                    <tr>
+                                        <td>{{ $data['name'] }}</td>
+                                        <td>{{ $data['position'] }}</td> <!-- Chức vụ -->
+                                        <td>{{ $attendance->time->format('Y-m-d') }}</td>
+                                        <td>{{ $attendance->type == 'in' ? $attendance->time->format('H:i') : '-' }}</td>
+                                        <td>{{ $attendance->type == 'out' ? $attendance->time->format('H:i') : '-' }}</td>
+                                        <td>
+                                            @if($attendance->type == 'out' && isset($data['checkInTime']) && isset($data['checkOutTime']))
+                                                {{ $attendance->time->diffInHours($data['checkInTime']) }} giờ
+                                            @else
+                                                0 giờ
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
                             @endforeach
                         </tbody>
                     </table>
-
-                    <!-- Điều hướng phân trang -->
-                    <div class="d-flex justify-content-center mt-4">
+                
+                    <!-- Phân trang -->
+                    <div class="mt-4">
                         {{ $users->links() }}
                     </div>
-                </div>
             </div>
 
             <!-- Footer -->

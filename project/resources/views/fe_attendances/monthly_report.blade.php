@@ -17,57 +17,6 @@
 
     <!-- Custom styles for this template-->
     <link href="/fe-access/css/sb-admin-2.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fc; /* Màu nền sáng */
-        }
-        h2 {
-            color: #4e73df; /* Màu tiêu đề */
-        }
-        table {
-            width: 100%; /* Đặt chiều rộng bảng 100% */
-            border-collapse: collapse; /* Kết hợp biên bảng */
-            margin-top: 20px; /* Khoảng cách trên bảng */
-        }
-        th, td {
-            text-align: center; /* Căn giữa nội dung */
-            padding: 12px; /* Khoảng cách trong ô */
-            border: 1px solid #dddddd; /* Biên mờ cho ô */
-        }
-        th {
-            background-color: #4e73df; /* Màu nền tiêu đề bảng */
-            color: white; /* Màu chữ tiêu đề bảng */
-        }
-        tr:nth-child(even) {
-            background-color: #f2f2f2; /* Màu nền hàng chẵn */
-        }
-        tr:hover {
-            background-color: #e9ecef; /* Màu nền khi di chuột qua hàng */
-        }
-        .form-group {
-            margin-bottom: 20px; /* Khoảng cách dưới các nhóm input */
-        }
-        .form-control {
-            width: auto; /* Chiều rộng tự động cho input */
-            display: inline-block; /* Hiển thị inline */
-            margin-right: 10px; /* Khoảng cách giữa các input */
-        }
-        .btn-submit {
-            padding: 10px 20px; /* Khoảng cách nút */
-            background-color: #4e73df; /* Màu nền nút */
-            color: white; /* Màu chữ nút */
-            border: none; /* Không có biên */
-            border-radius: 5px; /* Bo góc cho nút */
-            cursor: pointer; /* Con trỏ chuột khi hover */
-        }
-        .btn-submit:hover {
-            background-color: #2e59d9; /* Màu nền khi hover */
-        }
-        .table-responsive {
-            overflow-x: auto; /* Thêm thanh cuộn ngang */
-            margin-top: 20px; /* Khoảng cách trên bảng */
-        }
-    </style>
 </head>
 
 <body id="page-top">
@@ -79,85 +28,62 @@
                 @include('fe_admin.topbar') <!-- Topbar -->
 
                 <div class="container-fluid">
+                   
 
-                    <!-- Hiển thị thông báo nếu có -->
-                    @if(session('message'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            {{ session('message') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    @endif
-                    <h2 style="text-align: center;">Báo cáo giờ làm việc</h2>
 
-                    <form action="{{ route('attendance.monthlyReport', ['month' => '', 'year' => '']) }}" method="GET" style="text-align: center; margin-bottom: 20px;">
-                        <div class="form-group">
-                            <label for="month">Tháng:</label>
-                            <input type="number" id="month" name="month" class="form-control" min="1" max="12" value="{{ $month ?? now()->month }}">
-                            
-                            <label for="year">Năm:</label>
-                            <input type="number" id="year" name="year" class="form-control" value="{{ $year ?? now()->year }}">
-                            
-                            <button type="submit" class="btn-submit">Xem báo cáo</button>
-                        </div>
-                    </form>
-                
-                    <div class="table-responsive"> <!-- Bọc bảng trong div có class table-responsive -->
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th rowspan="2">Họ và tên</th>
-                                    <th rowspan="2">Chức vụ</th>
-                                    <th colspan="31">Ngày trong tháng</th>
-                                </tr>
-                                <tr>
-                                    @for ($i = 1; $i <= 31; $i++)
-                                        <th>{{ $i }}</th>
-                                    @endfor
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>{{ $attendanceData['name'] }}</td>
-                                    <td>{{ $attendanceData['position'] }}</td>
-                                    @for ($day = 1; $day <= 31; $day++)
-                                        @php
-                                            // Kiểm tra xem nhân viên có giờ làm việc cho ngày này không
-                                            $hours = isset($attendanceData['attendance'][$day]) ? $attendanceData['attendance'][$day] : null;
-                                        @endphp
-                                        <td>{{ $hours !== null ? $hours . ' giờ' : '' }}</td>
-                                    @endfor
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div> <!-- Kết thúc div table-responsive -->
-
-                </div>
+<div class="container">
+    <h1>Báo cáo tháng</h1>
+    
+    <form action="{{ route('attendance.monthlyReport') }}" method="GET">
+        <div class="form-row align-items-center">
+            <div class="col-auto">
+                <label for="month">Tháng:</label>
+                <select name="month" id="month" class="form-control">
+                    @for ($m = 1; $m <= 12; $m++)
+                        <option value="{{ $m }}" {{ $m == $month ? 'selected' : '' }}>
+                            {{ $m }}
+                        </option>
+                    @endfor
+                </select>
             </div>
-
-            <footer class="sticky-footer bg-white">
-                <div class="container my-auto">
-                    <div class="copyright text-center my-auto">
-                        <span>© {{ date('Y') }} Your Company. All Rights Reserved.</span>
-                    </div>
-                </div>
-            </footer>
+            <div class="col-auto">
+                <label for="year">Năm:</label>
+                <select name="year" id="year" class="form-control">
+                    @for ($y = now()->year - 5; $y <= now()->year + 5; $y++)
+                        <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>
+                            {{ $y }}
+                        </option>
+                    @endfor
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Xem báo cáo</button>
+            </div>
         </div>
-    </div>
+    </form>
 
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
+    <h2>Tên: {{ $employeeData['name'] }}</h2>
+    <h3>Chức vụ: {{ $employeeData['position'] }}</h3>
 
-    <!-- Bootstrap core JavaScript-->
-    <script src="fe-access/vendor/jquery/jquery.min.js"></script>
-    <script src="fe-access/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Ngày</th>
+                <th>Giờ Check-in</th>
+                <th>Giờ Check-out</th>
+                <th>Số giờ làm việc</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($employeeData['attendance'] as $date => $attendance)
+                <tr>
+                    <td>{{ $date }}</td>
+                    <td>{{ $attendance['checkIn'] ? $attendance['checkIn']->format('H:i') : 'Chưa check-in' }}</td>
+                    <td>{{ $attendance['checkOut'] ? $attendance['checkOut']->format('H:i') : 'Chưa check-out' }}</td>
+                    <td>{{ $attendance['hours'] }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
 
-    <!-- Core plugin JavaScript-->
-    <script src="fe-access/vendor/jquery-easing/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="fe-access/js/sb-admin-2.min.js"></script>
-</body>
-
-</html>

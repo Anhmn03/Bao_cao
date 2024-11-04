@@ -16,11 +16,13 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');  // Khóa ngoại liên kết với bảng user
             $table->integer('time');  // Thời gian (UNIX timestamp)
             $table->string('type', 20);  // Loại hành động ("in" hoặc "out")
+            $table->boolean('valid_status')->default(true)->change(); // true = Hợp lệ, false = Không hợp lệ
+            $table->text('justification')->nullable(); // Lý do giải trình
             $table->integer('created_at');  // Thời gian tạo (UNIX timestamp)
             $table->integer('created_by');  // ID người tạo bản ghi
             $table->integer('updated_at');  // Thời gian cập nhật (UNIX timestamp)
             $table->integer('updated_by');  // ID người cập nhật bản ghi
-
+          
             // Khóa ngoại liên kết với bảng user
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });

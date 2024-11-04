@@ -38,23 +38,7 @@
                         </div>
                     @endif
 
-                    <!-- Form Check In / Check Out -->
-                    {{-- <div class="d-flex justify-content-center gap-3 mb-4">
-                        <form action="{{ route('attendance.checkin') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-sign-in-alt"></i> Check In
-                            </button>
-                        </form>
-
-                        <form action="{{ route('attendance.checkout') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn btn-danger btn-lg">
-                                <i class="fas fa-sign-out-alt"></i> Check Out
-                            </button>
-                        </form>
-                    </div> --}}
-                 
+                   
                     <!-- Lịch sử Check In/Out -->
                     <div class="d-flex justify-content-between mb-4">
                         <h3 class="text-center">Lịch sử Check In/Out</h3>
@@ -79,10 +63,12 @@
                     <table class="table table-striped table-bordered text-center">
                         <thead class="table-dark">
                             <tr>
-                                <th>#</th>
+                                <th>STT</th>
                                 <th>Nhân viên</th>
                                 <th>Hoạt động</th>
                                 <th>Thời gian</th>
+                                <th>Trạng thái</th> <!-- New Status Column -->
+
                             </tr>
                         </thead>
                         <tbody>
@@ -92,6 +78,9 @@
                                 <td>{{ $attendance->user->name }}</td>
                                 <td>{{ ucfirst($attendance->type) }}</td> <!-- Checkin/Checkout -->
                                 <td>{{ $attendance->time->format('H:i d/m/Y') }}</td>
+                                <td>
+                                    {{ $attendance->status ? 'Hợp lệ' : 'Không hợp lệ' }} <!-- Hiển thị trạng thái -->
+                                </td>
 
                               </tr>
                             @endforeach
@@ -109,6 +98,9 @@
             </footer>
         </div>
     </div>
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
 
     <!-- Scroll to Top Button-->
     <a class="scroll-to-top rounded" href="#page-top">
