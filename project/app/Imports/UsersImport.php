@@ -6,49 +6,37 @@ use App\Models\Department;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use Illuminate\Support\Facades\Session;
 
 class UsersImport implements ToCollection
 {
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
+    protected $existingEmails = []; // Array to store existing emails
+
     public function collection(Collection $rows)
     {
-        $dataRows = $rows->skip(1);
+        $dataRows = $rows->skip(1); // Skip header row
 
         foreach ($dataRows as $row) {
             try {
-                // Tìm department_id dựa vào tên phòng ban
+                // Find department_id based on department name
                 $department = Department::where('name', $row[4])->first();
 
                 if (!$department) {
                     throw new \Exception("Department not found: " . $row[4]);
                 }
 
-                // Tìm người dùng dựa trên email
+                // Check for existing user by email
                 $user = User::where('email', $row[1])->first();
 
-                // Lấy ID của người cập nhật (giả sử từ session)
+                // Get the ID of the user who is updating (assuming from session)
                 $updatedById = auth()->id();
 
                 if ($user) {
-                    // Cập nhật thông tin người dùng nếu đã tồn tại
-                    $user->update([
-                        'name' => $row[0],  // Tên
-                        'email' => $row[1],  // Email
-                        'password' => bcrypt($row[2]),  // Mật khẩu
-                        'phone_number' => $row[3],  // Số điện thoại
-                        'position' => $row[5],  // Vị trí
-                        'department_id' => $department->id,  // ID phòng ban
-                        'status' => 1,  // Trạng thái mặc định là 1
-                        'role' => 2,  // Role mặc định là 2
-                        'updated_at' => now(),  // Thời gian cập nhật
-                        'updated_by' => $updatedById,  // ID người cập nhật
-                    ]);
+                    // If email already exists, add to existing emails array
+                    $this->existingEmails[] = $row[1];
+                    continue; // Skip this record
                 } else {
-                    // Tạo người dùng mới
+                    // Create new user
                     User::create([
                         'name' => $row[0],
                         'email' => $row[1],
@@ -63,10 +51,19 @@ class UsersImport implements ToCollection
                     ]);
                 }
             } catch (\Exception $e) {
-                // Ghi log lỗi hoặc xử lý tiếp
-                // \Log::error("Lỗi khi import dòng: " . json_encode($row) . " - " . $e->getMessage());
-                continue;
+                // Log the error or handle accordingly
+                // \Log::error("Error importing row: " . json_encode($row) . " - " . $e->getMessage());
+                continue; // Skip to next row
             }
+        }
+
+        // If there are any existing emails, store them in session
+        if (!empty($this->existingEmails)) {
+            // Flash existing emails to the session for display in the view
+            Session::flash('error', 'Những email đã tồn tại: ' . implode(', ', $this->existingEmails));
+        } else {
+            // Flash success message
+            Session::flash('success', 'Nhập khẩu thành công!');
         }
     }
 }
