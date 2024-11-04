@@ -103,9 +103,9 @@
                                     <select name="role" id="role" class="form-control" required>
                                         <option value="">Chọn vai trò</option>
                                         <option value="1">Admin</option>
-                                        <option value="2">Trưởng phòng</option>
+                                        <option value="4">Trưởng phòng</option>
                                         <option value="3">Tổ trưởng</option>
-                                        <option value="4">Nhân viên</option>
+                                        <option value="2">Nhân viên</option>
                                     </select>
                                     @error('role') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>

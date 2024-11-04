@@ -75,7 +75,7 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                                <form id="editUserForm" action="{{ route('users.update', $user->id) }}" method="POST">
+                                <form id="editUserForm" action="{{ route('users.quickUpdate', $user->id) }}" method="POST">
                                     @csrf
                                     <div class="form-group">
                                         <label for="name">Name</label>

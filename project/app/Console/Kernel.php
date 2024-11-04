@@ -12,7 +12,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('send:attendance-reminder')->dailyAt('11:30');
     }
 
     /**
@@ -28,4 +28,6 @@ class Kernel extends ConsoleKernel
         // ...
         'checklogin' => \App\Http\Middleware\CheckLogin::class,
     ];
+   
+
 }
