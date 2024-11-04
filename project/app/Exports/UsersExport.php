@@ -3,47 +3,67 @@
 namespace App\Exports;
 
 use App\Models\User;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
-class UsersExport implements FromCollection, WithHeadings
+class UsersExport implements WithMultipleSheets
 {
-    /**
-    * @return \Illuminate\Support\Collection
-    */
+    public function sheets(): array
+    {
+        $sheets = [];
+        $chunkSize = 5; // Kích thước mỗi chunk là 15 bản ghi
+        $totalUsers = User::count(); // Đếm tổng số bản ghi
+        $sheetsCount = ceil($totalUsers / $chunkSize); // Tính số lượng sheet
+
+        for ($i = 0; $i < $sheetsCount; $i++) {
+            $sheets[] = new UserSheet($i * $chunkSize, $chunkSize);
+        }
+
+        return $sheets;
+    }
+}
+
+class UserSheet implements FromCollection, WithHeadings
+{
+    protected $offset;
+    protected $limit;
+
+    public function __construct($offset, $limit)
+    {
+        $this->offset = $offset;
+        $this->limit = $limit;
+    }
+
+/*************  ✨ Codeium Command ⭐  *************/
+/******  096c995e-4e18-477d-8c36-7450f3c78deb  *******/
     public function collection()
     {
-        return User::with('department') // Load thông tin phòng ban
-        ->get()
-        ->map(function ($user) {
-            return [
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone_number' => $user->phone_number,
-                'position' => $user->position,
-                'department' => $user->department ? $user->department->name : 'N/A', // Hiển thị tên phòng ban
-                'status' => $user->status ? 'Hoạt động' : 'Không hoạt động',
-                
-            ];
-        });
-}
+        return User::with('department')
+            ->offset($this->offset)
+            ->limit($this->limit)
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'Họ và tên' => $user->name,
+                    'Email' => $user->email,
+                    'Số điện thoại' => $user->phone_number,
+                    'Chức vụ' => $user->position,
+                    'Phòng ban' => $user->department ? $user->department->name : 'N/A',
+                    'Trạng thái' => $user->status ? 'Hoạt động' : 'Không hoạt động',
+                ];
+            });
+    }
 
-/**
- * Cung cấp tiêu đề cho từng cột trong file Excel.
- */
-public function headings(): array
-{
-    return [
-        'Họ và tên',
-        'Email',
-        'Số điện thoại',
-        'Chức vụ',
-        'Phòng ban', // Hiển thị tên phòng ban
-        'Trạng thái',
-        
-        
-    ];
+    public function headings(): array
+    {
+        return [
+            'Họ và tên',
+            'Email',
+            'Số điện thoại',
+            'Chức vụ',
+            'Phòng ban',
+            'Trạng thái',
+        ];
+    }
 }
-}
-
-
