@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('created_by'); // Người tạo
             $table->integer('updated_at'); // Thời gian cập nhật
             $table->integer('updated_by'); // Người cập nhật
+            
         });
     }
 
