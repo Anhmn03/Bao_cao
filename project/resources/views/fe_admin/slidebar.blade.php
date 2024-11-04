@@ -34,14 +34,20 @@
             <i class="fas fa-fw fa-tachometer-alt"></i>
             <span >Quản lý chấm công </span></a>
     </li>
-
     <hr class="sidebar-divider d-none d-md-block">
+    <li class="nav-item active">
+        <a class="nav-link" href="{{ route('salary') }}">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span >Quản lý bậc lương </span></a>
+    </li>
+
+    {{-- <hr class="sidebar-divider d-none d-md-block">
     <li class="nav-item active">
         <a class="nav-link" href="{{ route('attendance.all') }}">
             <i class="fas fa-fw fa-tachometer-alt"></i>
             <span >Thử</span></a>
     </li>
-   
+    --}}
     {{-- <li class="nav-item active">
         <a class="nav-link" href="{{ route('attendance.all') }}">
             <i class="fas fa-fw fa-tachometer-alt"></i>

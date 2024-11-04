@@ -25,12 +25,7 @@ class Department extends Model
     }
 
     // Mối quan hệ với các phòng ban con
-    public function children()
-    {
-        return $this->hasMany(Department::class, 'parent_id');
-    }
-
-
+   
         // Phương thức để kiểm tra trạng thái của phòng ban
     public function isActive(){
         return $this->status === 1;
@@ -42,6 +37,10 @@ class Department extends Model
         'updated_at' => 'datetime',
     ];
 
+    public function children()
+    {
+        return $this->hasMany(Department::class, 'parent_id')->with('children');
+    }
     public function users(){
         return $this->hasMany(User::class);
     }
