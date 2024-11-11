@@ -16,12 +16,14 @@ class EmailReminder extends Mailable
     use Queueable, SerializesModels;
 
     private User $user;
+    private User $reminderTime;
     /**
      * Create a new message instance.
      */
     public function __construct(User $user)
 {
     $this->user = $user; // Gán đúng đối tượng $user
+    // $this->reminderTime = $reminderTime;
 }
 
     /**
@@ -42,7 +44,9 @@ class EmailReminder extends Mailable
         return new Content(
             view: 'fe_email.email_reminder',
             with: [
-                'user' => $this->user
+                'user' => $this->user,  // Thêm dấu phẩy ở đây
+                // 'reminder_time' => $this->user->reminder_time,
+                
             ]
         );
     }
