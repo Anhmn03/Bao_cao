@@ -7,46 +7,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Admin - Danh sách bậc lương</title>
 
-    <!-- Custom fonts and styles-->
     <link href="/fe-access/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
     <link href="/fe-access/css/sb-admin-2.min.css" rel="stylesheet">
 
     <style>
-        .input-group {
-            border-radius: 50px;
-            overflow: hidden;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        /* Styling for department titles */
+        .department-title {
+            margin-top: 20px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #0056b3;
+            cursor: pointer;
+            transition: color 0.3s ease;
         }
 
-        .input-group input {
-            border: none;
-            padding: 15px;
-            font-size: 16px;
+        .department-title:hover {
+            color: #003366; /* Darker color on hover */
         }
 
-        .input-group input:focus {
-            outline: none;
-            box-shadow: none;
+        /* Smooth animation for showing and hiding tables */
+        .salary-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #ddd;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
         }
 
-        .input-group .btn {
-            background-color: #4e73df;
-            color: white;
-            border: none;
-            border-radius: 0;
+        .salary-table.show {
+            display: table;
+            opacity: 1;
         }
 
-        .input-group .btn:hover {
-            background-color: #2e59d9;
+        /* Header styling with dark gray background */
+        .salary-table thead th {
+            background-color: #bfbfbf; /* Darker gray color */
+            color: #000; /* Black text color for the first row */
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid #ddd;
         }
 
-        .action-btns a, .action-btns button {
-            margin-right: 5px;
+        /* First column styling with dark gray background */
+        .salary-table tbody th {
+            background-color: #bfbfbf; /* Darker gray color */
+            font-weight: bold;
+            color: #333;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
         }
 
-        .action-btns .btn {
-            border-radius: 5px;
+        /* Table body styling */
+        .salary-table tbody td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+            background-color: #ffffff;
+        }
+
+        /* Row hover effect */
+        .salary-table tbody tr:hover {
+            background-color: #f2f7ff;
+        }
+
+        /* Specific styling for top-left cell */
+        .salary-table thead th:first-child {
+            background-color: #ffffff; /* Set top-left cell to white */
+        }
+
+        /* Transition for toggle effect */
+        .toggle-icon {
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .rotate {
+            transform: rotate(90deg);
         }
     </style>
 </head>
@@ -60,63 +102,61 @@
                 @include('fe_admin.topbar')
 
                 <div class="container-fluid">
-                    @if (session('success'))
-                        <div class="alert alert-success">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-
                     <div class="d-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Danh sách Bậc Lương</h1>
                         <div class="d-flex align-items-center">
                             <a href="{{ route('salary.create') }}" class="btn btn-primary mr-2">Thêm cấp bậc lương</a>
-                    
                             <form method="GET" action="{{ route('salary') }}" class="form-inline">
                                 <div class="form-group mb-2">
                                     <label for="search_salary" class="sr-only">Nhập tên cấp bậc:</label>
                                     <input type="text" class="form-control mr-2" id="search_salary" name="search_salary" value="{{ request()->input('search_salary') }}" placeholder="Nhập tên cấp bậc">
                                 </div>
                                 <button type="submit" class="btn btn-primary mb-2">
-                                    <i class="fas fa-search"></i> <!-- Thay đổi icon ở đây -->
+                                    <i class="fas fa-search"></i>
                                 </button>
                             </form>
                         </div>
                     </div>
-                    
+
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover">
-                            <thead class="thead-dark">
-                                <tr>
-                                    <th>STT</th>
-                                    <th>Bậc</th>
-                                    <th>Lương Tháng</th>
-                                    <th>Lương Ngày</th>
-                                    <th>Chi tiết </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($salarylevels as $salaryLevel)
+                        @foreach ($departments as $department)
+                            <h2 class="department-title" onclick="toggleTable('{{ $department->id }}')">
+                                {{ $department->name }}
+                                <i class="fas fa-chevron-right toggle-icon" id="icon-{{ $department->id }}"></i>
+                            </h2>
+
+                            <!-- Salary table with levels in the first row and salary info in the first column -->
+                            <table class="salary-table" id="table-{{ $department->id }}">
+                                <thead>
                                     <tr>
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $salaryLevel->name }}</td>
-                                        <td>{{ number_format($salaryLevel->monthly_salary, 0, ',', '.') }} VND</td>
-                                        <td>{{ number_format($salaryLevel->daily_salary, 0, ',', '.') }} VND</td>
-                                        <td class="action-btns">
-                                            <a href="{{ route('salary.show', $salaryLevel->id) }}" class="btn btn-primary">
-                                                <i class="fas fa-info-circle"></i>
-                                            </a>
-                                            {{-- <form action="{{ route('salary_levels.destroy', $salaryLevel) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                    <i class="fas fa-trash-alt"></i> Xóa
-                                                </button>
-                                            </form> --}}
-                                        </td>
+                                        <th></th>
+                                        @foreach ($salaries as $salary)
+                                            @if ($salary->department_id == $department->id)
+                                                <th><a href="{{ route('salary.show', ['id' => $salary->id]) }}">{{ $salary->name }}</a></th>
+                                            @endif
+                                        @endforeach
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th>Hệ Số Lương</th>
+                                        @foreach ($salaries as $salary)
+                                            @if ($salary->department_id == $department->id)
+                                                <td>{{ $salary->salaryCoefficient }}</td>
+                                            @endif
+                                        @endforeach
+                                    </tr>
+                                    <tr>
+                                        <th>Lương Tháng (nghìn đồng)</th>
+                                        @foreach ($salaries as $salary)
+                                            @if ($salary->department_id == $department->id)
+                                                <td>{{ number_format($salary->monthlySalary / 1000, 0, ',', '.') }}</td>
+                                            @endif
+                                        @endforeach
+                                    </tr>
+                                </tbody>
+                            </table>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -131,23 +171,24 @@
         </div>
     </div>
 
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
-
-    <script>
-        function formatCurrency(input) {
-            let value = input.value.replace(/\D/g, ''); // Chỉ giữ lại số
-            input.value = new Intl.NumberFormat('vi-VN').format(value); // Định dạng theo VN
-        }
-    </script>
-
-    <!-- Bootstrap core JavaScript-->
     <script src="fe-access/vendor/jquery/jquery.min.js"></script>
     <script src="fe-access/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="fe-access/vendor/jquery-easing/jquery.easing.min.js"></script>
     <script src="fe-access/js/sb-admin-2.min.js"></script>
+
+    <script>
+        function toggleTable(departmentId) {
+            const table = document.getElementById('table-' + departmentId);
+            const icon = document.getElementById('icon-' + departmentId);
+            if (table.classList.contains('show')) {
+                table.classList.remove('show');
+                icon.classList.remove('rotate');
+            } else {
+                table.classList.add('show');
+                icon.classList.add('rotate');
+            }
+        }
+    </script>
 </body>
 
 </html>
