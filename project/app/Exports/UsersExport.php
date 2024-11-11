@@ -35,8 +35,6 @@ class UserSheet implements FromCollection, WithHeadings
         $this->limit = $limit;
     }
 
-/*************  ✨ Codeium Command ⭐  *************/
-/******  096c995e-4e18-477d-8c36-7450f3c78deb  *******/
     public function collection()
     {
         return User::with('department')

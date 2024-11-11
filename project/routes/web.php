@@ -7,6 +7,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\TestExcelController;
 use App\Exports\UsersExport;
 use App\Http\Controllers\SalaryController;
+use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Route;
 
@@ -65,7 +66,8 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/users/{id}/detail', [UserController::class, 'showDetail'])->name('users.detail');
     Route::get('/users/{id}/edit', [UserController::class, 'editUser'])->name('users.edit');
     Route::post('/users/{id}/update-detail', [UserController::class, 'updateUser'])->name('users.updatedetail');
-
+    Route::get('/reminder-settings', [UserController::class, 'showReminderForm'])->name('reminder.settings');
+    Route::post('/reminder-settings', [UserController::class, 'saveReminderSettings'])->name('reminder.save');
 
 });
 
@@ -79,6 +81,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/attendance/allUser', [User_attendanceController::class, 'reportAllUsers'])->name('attendance.all');
     Route::get('/attendance/department-report', [User_attendanceController::class, 'departmentReport'])->name('department.report');
     Route::get('/attendance/search', [User_attendanceController::class, 'searchByDepartment'])->name('attendance.search');
+    Route::post('/attendance/{id}/justification', [User_attendanceController::class, 'addJustification'])->name('attendance.addJustification');
+    Route::get('/admin/manage-attendances', [User_attendanceController::class, 'manageInvalidAttendances'])->name('admin.manageAttendances');
+    Route::post('/admin/approve-attendance/{id}', [User_attendanceController::class, 'approveAttendance'])->name('admin.approveAttendance');
 
 });
 

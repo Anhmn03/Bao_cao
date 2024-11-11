@@ -27,8 +27,9 @@ class User extends Authenticatable
         'status',
         'position',
         'department_id',
-        'salary_level_id',
+        'salary_id',
         'role',
+        'reminder_time',
         'created_at',
         'created_by',
         'updated_at',
@@ -63,4 +64,18 @@ class User extends Authenticatable
     public function isActive(){
         return $this->status === 1;
     }
+    public function creator()
+{
+    return $this->belongsTo(User::class, 'created_by');
+}
+
+public function updater()
+{
+    return $this->belongsTo(User::class, 'updated_by');
+}
+public function salary()
+{
+    return $this->belongsTo(Salary::class, 'salary_id', 'id');
+}
+
 }

@@ -29,11 +29,27 @@
     </li>
 
     <hr class="sidebar-divider d-none d-md-block">
-    <li class="nav-item active">
-        <a class="nav-link" href="{{ route('department.report') }}">
-            <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span >Quản lý chấm công </span></a>
-    </li>
+<li class="nav-item active">
+    <a class="nav-link" href="{{ route('department.report') }}">
+        <i class="fas fa-fw fa-tachometer-alt"></i>
+        <span>Quản lý chấm công</span>
+    </a>
+    <!-- Faded submenu items -->
+    <ul class="nav flex-column pl-4" style="opacity: 0.5;">
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('department.report') }}">
+                <span>Báo cáo</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('admin.manageAttendances') }}">
+                <span>Chấm công không hợp lệ</span>
+            </a>
+        </li>
+    </ul>
+</li>
+
+    
     <hr class="sidebar-divider d-none d-md-block">
     <li class="nav-item active">
         <a class="nav-link" href="{{ route('salary') }}">

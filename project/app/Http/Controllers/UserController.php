@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;  // Đảm bảo rằng bạn đã import Carbon
 
 use App\Models\Department;
 use App\Models\User;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Exports\UsersExport;
 use App\Exports\UserTemplateExport;
 use App\Imports\UsersImport;
+use App\Models\Salary;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 
@@ -183,63 +185,58 @@ class UserController extends Controller
     // }
     
     public function showDetail($id)
-{
-    $user = User::with('department')->findOrFail($id); // Lấy người dùng và phòng ban
-    $departments = Department::where('parent_id', 0)->get(); // Lấy tất cả phòng ban cha
-
-    // Nếu có phòng ban con, lấy danh sách phòng ban con
-    $subDepartments = $user->department && $user->department->parent_id 
-        ? Department::where('parent_id', $user->department->parent_id)->get() 
-        : [];
-
-    return view('fe_user/user_detail', compact('user', 'departments', 'subDepartments'));
-}
-
-public function editUser(Request $request, $id)
-{
-    $user = User::with('department')->findOrFail($id); // Lấy người dùng và phòng ban
-    $departments = Department::where('parent_id', 0)->get(); // Lấy phòng ban cha
-
-    $subDepartments = [];
-    if ($request->has('parent_department_id')) {
-        $subDepartments = Department::where('parent_id', $request->input('parent_department_id'))->get();
-    } elseif ($user->department && $user->department->parent_id) {
-        $subDepartments = Department::where('parent_id', $user->department->parent_id)->get();
+    {
+        $user = User::with(['department', 'salary'])->findOrFail($id);
+        $departments = Department::where('parent_id', 0)->get();
+        $salaries = Salary::all(); // Lấy tất cả hệ số lương
+    
+        $subDepartments = $user->department && $user->department->parent_id 
+            ? Department::where('parent_id', $user->department->parent_id)->get() 
+            : [];
+    
+        return view('fe_user/user_detail', compact('user', 'departments', 'subDepartments', 'salaries'));
     }
 
-    return view('fe_user/user_detail', compact('user', 'departments', 'subDepartments'));
-
-  
-}
-
-public function updateUser(Request $request, $id)
-{
-    $user = User::findOrFail($id); // Lấy thông tin người dùng
-
-    // Xác thực dữ liệu đầu vào
-    $validator = Validator::make($request->all(), [
-        'email' => 'required|email|max:255|unique:users,email,' . $id,
-        'phone_number' => 'required|string|max:15',
-        'position' => 'required|string',
-        'department_id' => 'required|exists:departments,id',
-        'status' => 'required|string',
-    ]);
-
-    if ($validator->fails()) {
-        // Nếu dữ liệu không hợp lệ, quay lại trang chỉnh sửa và hiển thị lỗi
-        return back()->withErrors($validator)->withInput();
+    public function editUser(Request $request, $id)
+    {
+        $user = User::with(['department', 'salaries'])->findOrFail($id);
+        $departments = Department::where('parent_id', 0)->get();
+    
+        $subDepartments = [];
+        $salaryCoefficient = $user->salary ? $user->salary->salaryCoefficient : 1.00;
+    
+        if ($request->has('salary_id')) {
+            $salary =Salary::find($request->input('salary_id'));
+            $salaryCoefficient = $salary ? $salary->salaryCoefficient : $salaryCoefficient;
+        }
+    
+        return view('fe_user/user_detail', compact('user', 'departments', 'subDepartments', 'salaryCoefficient'));
     }
 
-    // Cập nhật thông tin người dùng và ghi nhận người cập nhật
-    $user->update($request->only([
-        'email', 'phone_number', 'position', 'department_id', 'status'
-    ]) + ['updated_by' => Auth::id()]);
-
-    // Chuyển hướng về trang danh sách người dùng với thông báo thành công
-    return redirect()->route('users.detail', ['id' => $user->id])
-                     ->with('success', 'Thông tin người dùng đã được cập nhật thành công.');
-}
-
+    public function updateUser(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+    
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|max:255|unique:users,email,' . $id,
+            'phone_number' => 'required|string|max:15',
+            'position' => 'required|string',
+            'department_id' => 'required|exists:departments,id',
+            'status' => 'required|string',
+            'salary_id' => 'required|exists:salaries,id', // Xác thực salary_id
+        ]);
+    
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+    
+        $user->update($request->only([
+            'email', 'phone_number', 'position', 'department_id', 'status', 'salary_id'
+        ]) + ['updated_by' => Auth::id()]);
+    
+        return redirect()->route('users.detail', ['id' => $user->id])
+                         ->with('success', 'Thông tin người dùng đã được cập nhật thành công.');
+    }
 public function importPost(Request $request)
     {
         $request->validate([
@@ -263,4 +260,52 @@ public function importPost(Request $request)
    public function exportTemplate(){
     return Excel::download(new UserTemplateExport, 'users_template.xlsx');
    }
+
+   public function showReminderForm()
+{
+    $user = Auth::user(); // Lấy thông tin người dùng hiện tại
+
+    // Kiểm tra xem người dùng đã đăng nhập chưa
+    if (!$user) {
+        return redirect()->route('login')->with('error', 'Vui lòng đăng nhập để tiếp tục.');
+    }
+
+    return view('fe_attendances.users_attendance');  // Không cần truyền biến $user nữa
+}
+
+
+
+public function saveReminderSettings(Request $request)
+{
+    // Kiểm tra nếu người dùng đã đăng nhập
+    if (!Auth::check()) {
+        return redirect()->route('login')->with('error', 'Vui lòng đăng nhập để tiếp tục.');
+    }
+
+    // Lấy người dùng hiện tại từ Auth
+    $user = Auth::user();
+
+    // Validate rằng reminder_time phải có định dạng H:i
+    $request->validate([
+        'reminder_time' => 'required|date_format:H:i',
+    ]);
+
+    // Lấy thời gian nhắc nhở từ form và thêm phần giây
+    $reminderTime = $request->input('reminder_time') . ':00'; // Thêm phần giây
+
+    // Chuyển đổi thời gian thành định dạng H:i:s
+    $user->reminder_time = Carbon::createFromFormat('H:i:s', $reminderTime)->format('H:i:s');
+
+    // Lưu lại thông tin người dùng
+    if ($user->save()) {
+        return redirect()->back()->with('success', 'Thời gian nhắc nhở đã được cập nhật!');
+    } else {
+        return back()->withErrors(['error' => 'Lỗi khi cập nhật thời gian nhắc nhở']);
+    }
+}
+
+
+   
+
+   
 }
