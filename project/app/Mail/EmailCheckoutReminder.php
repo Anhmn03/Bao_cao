@@ -11,19 +11,17 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Auth;
 
-class EmailReminder extends Mailable
+class EmailCheckoutReminder extends Mailable
 {
     use Queueable, SerializesModels;
 
     private User $user;
-    private User $reminderTime;
     /**
      * Create a new message instance.
      */
-    public function __construct(User $user, $reminderTime)
+    public function __construct(User $user)
 {
     $this->user = $user; // Gán đúng đối tượng $user
-    $this->reminderTime = $reminderTime;
 }
 
     /**
@@ -42,10 +40,9 @@ class EmailReminder extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'fe_email.email_reminder',
+            view: 'fe_email.checkout_reminder',
             with: [
                 'user' => $this->user,  // Thêm dấu phẩy ở đây
-                'reminder_time' => $this->user->reminder_time,
                 
             ]
         );
