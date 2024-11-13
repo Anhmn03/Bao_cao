@@ -45,7 +45,6 @@
 
         /* Header styling with dark gray background */
         .salary-table thead th {
-            background-color: #bfbfbf; /* Darker gray color */
             color: #000; /* Black text color for the first row */
             padding: 12px;
             text-align: center;
@@ -55,7 +54,6 @@
 
         /* First column styling with dark gray background */
         .salary-table tbody th {
-            background-color: #bfbfbf; /* Darker gray color */
             font-weight: bold;
             color: #333;
             padding: 10px;
