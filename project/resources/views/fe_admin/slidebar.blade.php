@@ -46,6 +46,11 @@
                 <span>Chấm công không hợp lệ</span>
             </a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('setting.edit') }}">
+                <span>Cấu hình thời gian</span>
+            </a>
+        </li>
     </ul>
 </li>
 
