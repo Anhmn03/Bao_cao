@@ -6,7 +6,11 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\TestExcelController;
 use App\Exports\UsersExport;
+use App\Http\Controllers\Caculate_Salary;
+use App\Http\Controllers\Salary_caculate;
 use App\Http\Controllers\SalaryController;
+use App\Http\Controllers\SettingController;
+use App\Models\Salary;
 use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Route;
@@ -68,6 +72,9 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('/users/{id}/update-detail', [UserController::class, 'updateUser'])->name('users.updatedetail');
     Route::get('/reminder-settings', [UserController::class, 'showReminderForm'])->name('reminder.settings');
     Route::post('/reminder-settings', [UserController::class, 'saveReminderSettings'])->name('reminder.save');
+    Route::get('/setting/edit',[SettingController::class, 'edit'])->name('setting.edit');
+    Route::post('/setting/update',[SettingController::class, 'updateCheckInOutTime'])->name('setting.update');
+    Route::post('/settings/update-reminder-time-checkout', [SettingController::class, 'updateReminderTimeCheckout'])->name('setting.updateReminderTimeCheckout');
 
 });
 
@@ -84,7 +91,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/attendance/{id}/justification', [User_attendanceController::class, 'addJustification'])->name('attendance.addJustification');
     Route::get('/admin/manage-attendances', [User_attendanceController::class, 'manageInvalidAttendances'])->name('admin.manageAttendances');
     Route::post('/admin/approve-attendance/{id}', [User_attendanceController::class, 'approveAttendance'])->name('admin.approveAttendance');
-
+    Route::post('/admin/reject-attendance/{id}', [User_attendanceController::class, 'rejectAttendance'])->name('admin.rejectAttendance');
 });
 
 // Route::get('/users/export', function () {
@@ -99,4 +106,17 @@ Route::middleware('auth')->group(function () {
    Route::get('/salary/{id}',[SalaryController::class, 'show'])->name('salary.show');
    Route::get('/salary/{id}/edit',[SalaryController::class, 'edit'])->name('salary.edit');
    Route::put('/salary/{id}/update',[SalaryController::class, 'update'])->name('salary.update');
+});
+
+// 
+
+Route::middleware('auth')->group(function () {
+    Route::get('/salary_caculate/{userId}', [Caculate_Salary::class, 'getSalaryInfo'])->name('salary_user');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/salary_cacu', [Salary_caculate::class, 'showCaculate'])->name('salary_caculate');
+    Route::get('/salary-calculate', [Salary_caculate::class, 'index'])->name('salary.calculate');
+    Route::post('/salary/save', [Salary_caculate::class, 'saveSalary'])->name('salary.save');
+
 });
