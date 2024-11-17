@@ -9,49 +9,43 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class JustificationSubmitted extends Mailable
+class JustificationRejected extends Mailable
 {
     use Queueable, SerializesModels;
     public $user;
     public $justification;
-
-
+    public $rejectionReason;
     /**
      * Create a new message instance.
      */
-    public function __construct($user, $justification)
+    public function __construct($user, $justification, $rejectionReason)
     {
         $this->user = $user;
         $this->justification = $justification;
-        }
+        $this->rejectionReason = $rejectionReason;
+    }
 
-        public function build()
-        {
-            return $this->from($this->user->email) // Sử dụng email của người dùng làm người gửi
-                        ->subject('Giải trình lý do')
-                        ->view('fe_email/justification_submitted')
-                        ->with([
-                            'userName' => $this->user->name,
-                            'justification' => $this->justification,
-                        ]);
-        }
     /**
      * Get the message envelope.
      */
-        public function envelope(): Envelope
+    public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Giải trình lý do',
+            subject: 'Quản lý chấm công',
         );
     }
-
+    public function build()
+    {
+        return $this->subject('Lý do giải trình bị từ chối')
+                    ->view('fe_email.justificationRejected');
+    }
     /**
      * Get the message content definition.
      */
     public function content(): Content
     {
         return new Content(
-            view: 'fe_email/justification_submitted',
+            view: 'fe_email.justificationRejected',
         );
     }
 
