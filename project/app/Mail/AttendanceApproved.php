@@ -3,28 +3,24 @@
 namespace App\Mail;
 
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Auth;
 
-class EmailReminder extends Mailable
+class AttendanceApproved extends Mailable
 {
     use Queueable, SerializesModels;
-
     private User $user;
-    public Carbon $reminderTime; // Sửa kiểu thành Carbon
+
     /**
      * Create a new message instance.
      */
-    public function __construct(User $user, Carbon $reminderTime)
+    public function __construct(User $user)
     {
-        $this->user = $user;
-        $this->reminderTime = $reminderTime;
+        $this->user = $user; // Gán đúng đối tượng $user
     }
 
     /**
@@ -33,22 +29,25 @@ class EmailReminder extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Email nhắc nhở chấm công ',
+            subject: 'Attendance Approved',
         );
     }
-
+    public function build()
+    {
+        return $this->from($this->user->email) // Sử dụng email của người dùng làm người gửi
+            ->subject('Quản lý chấm công')
+            ->view('fe_email/send_success')
+            ->with([
+                'user' => $this->user,
+            ]);
+    }
     /**
      * Get the message content definition.
      */
     public function content(): Content
     {
         return new Content(
-            view: 'fe_email.email_reminder',
-            with: [
-                'user' => $this->user,  // Thêm dấu phẩy ở đây
-                'reminder_time' => $this->user->reminder_time,
-                
-            ]
+            view: 'fe_email/send_success',
         );
     }
 

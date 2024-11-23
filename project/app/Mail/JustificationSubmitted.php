@@ -13,26 +13,25 @@ class JustificationSubmitted extends Mailable
 {
     use Queueable, SerializesModels;
     public $user;
-    public $justification;
+    public $justificationReason;
+   
 
 
     /**
      * Create a new message instance.
      */
-    public function __construct($user, $justification)
+    public function __construct($user, $justificationReason)
     {
         $this->user = $user;
-        $this->justification = $justification;
-        }
-
-        public function build()
+        $this->justificationReason = $justificationReason;
+    }        public function build()
         {
             return $this->from($this->user->email) // Sử dụng email của người dùng làm người gửi
                         ->subject('Giải trình lý do')
                         ->view('fe_email/justification_submitted')
                         ->with([
                             'userName' => $this->user->name,
-                            'justification' => $this->justification,
+                            'justificationReason' => $this->justificationReason,
                         ]);
         }
     /**
