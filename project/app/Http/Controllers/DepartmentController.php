@@ -23,13 +23,11 @@ class DepartmentController extends Controller
     }
     public function showMembers($id)
     {
-        // Lấy phòng ban hiện tại và các phòng ban con
+        // Lấy phòng ban hiện tại
         $department = Department::with('children')->findOrFail($id);
     
-        // Lấy tất cả ID của phòng ban hiện tại và các phòng ban con
-        $departmentIds = collect([$department->id])->merge(
-            $department->children->pluck('id')
-        );
+        // Lấy tất cả ID của phòng ban hiện tại và các phòng ban con (đệ quy)
+        $departmentIds = $this->getAllChildrenIds($department);
     
         // Lấy tất cả người dùng có trạng thái hoạt động (status = 1) thuộc các phòng ban đó
         $users = User::whereIn('department_id', $departmentIds)
@@ -38,6 +36,27 @@ class DepartmentController extends Controller
     
         // Trả về view với dữ liệu phòng ban và danh sách người dùng
         return view('fe_department/department_members', compact('department', 'users'));
+    }
+    
+    // Phương thức đệ quy để lấy tất cả các phòng ban con
+    private function getAllChildrenIds($department)
+    {
+        // Lấy các phòng ban con của phòng ban hiện tại
+        $children = $department->children;
+    
+        // Nếu không có phòng ban con, trả về chỉ ID của phòng ban hiện tại
+        if ($children->isEmpty()) {
+            return collect([$department->id]);
+        }
+    
+        // Nếu có phòng ban con, tiếp tục lấy ID của phòng ban con và đệ quy
+        $childIds = $children->pluck('id');
+        foreach ($children as $child) {
+            $childIds = $childIds->merge($this->getAllChildrenIds($child));
+        }
+    
+        // Trả về tất cả các ID phòng ban (bao gồm phòng ban hiện tại và các phòng ban con)
+        return collect([$department->id])->merge($childIds)->unique();
     }
     public function create()
     {
@@ -159,14 +178,12 @@ class DepartmentController extends Controller
     return view('fe_department/sub_departments', compact('department'));
 }
 
-/*************  ✨ Codeium Command ⭐  *************/
     /**
      * Hiển thị chi tiết phòng ban và người dùng trong phòng ban.
      *
      * @param int $id ID của phòng ban
      * @return \Illuminate\Http\Response
      */
-/******  9c9fcda7-79d7-4339-b7a9-6b2b0cab570c  *******/
 public function show($id){
     $department = Department::with('users')->findOrFail($id);
     return view('fe_department/department', compact('department'));
