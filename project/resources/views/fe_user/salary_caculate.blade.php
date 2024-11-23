@@ -17,44 +17,58 @@
                         <i class="fas fa-arrow-left"></i> Quay lại
                     </button>
                     <h1 class="mb-4">Tính Lương Nhân Viên</h1>
-                     <form method="GET" action="{{ route('salary_caculate') }}">
-                        <div class="form-group">
-                            <label for="department_id">Chọn Phòng Ban:</label>
-                            <select id="department_id" name="department_id" class="form-control">
-                                <option value="">-- Chọn --</option>
-                                @foreach($departments as $department)
-                                    <option value="{{ $department->id }}" {{ request('department_id') == $department->id ? 'selected' : '' }}>
-                                        {{ $department->name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                     <form method="GET" action="{{ route('salary.calculate') }}" id="salary-form">
+                        <!-- Chọn phòng ban -->
+                        <select name="department_id" id="department_id" required>
+                            <option value="">Chọn phòng ban</option>
+                            @foreach($departments as $department)
+                                <option value="{{ $department->id }}" {{ request('department_id') == $department->id ? 'selected' : '' }}>
+                                    {{ $department->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        
+                        <!-- Nhân viên (Hiển thị khi phòng ban đã chọn) -->
+                        <div id="employee-container">
+                            @if(isset($employees) && count($employees) > 0)
+                                <select name="user_id" id="user_id" required>
+                                    <option value="">Chọn nhân viên</option>
+                                    @foreach($employees as $employee)
+                                        <option value="{{ $employee->id }}" {{ request('user_id') == $employee->id ? 'selected' : '' }}>
+                                            {{ $employee->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <p>Chưa có nhân viên nào trong phòng ban này.</p>
+                            @endif
                         </div>
-                
-                        <div class="form-group">
-                            <label for="user_id">Chọn Nhân Viên:</label>
-                            <select id="user_id" name="user_id" class="form-control">
-                                <option value="">-- Chọn --</option>
-                                @foreach($employees as $employee)
-                                    <option value="{{ $employee->id }}" {{ request('user_id') == $employee->id ? 'selected' : '' }}>
-                                        {{ $employee->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                
-                        <button type="submit" class="btn btn-primary">Tính Lương</button>
+
+                        <button type="submit">Tính lương</button>
                     </form>
                     
                     
-                    <!-- Hiển thị kết quả nếu đã chọn phòng ban và nhân viên -->
-                     @if($user)
-                        <h3>Thông tin nhân viên: {{ $user->name }}</h3>
-                        <p>Lương tính được: {{ number_format($salaryAmount, 0, ',', '.') }} VND</p>
-                        <p>Số ngày công hợp lệ: {{ $validWorkdays }}</p>
-                        <p>Số ngày công không hợp lệ: {{ $invalidWorkdays }}</p>
+                   
+                
+                    <!-- Hiển thị thông tin lương đã tính -->
+                    @if($user && $salaryAmount !== null)
+                        <h2>Thông Tin Lương</h2>
+                        <p>Nhân viên: {{ $user->name }}</p>
+                        <p>Lương Tháng: {{ $salaryAmount }} VND</p>
+                        <p>Ngày công hợp lệ: {{ $validWorkdays }}</p>
+                        <p>Ngày công không hợp lệ: {{ $invalidWorkdays }}</p>
+                
+                        <!-- Nút Lưu Lương -->
+                        <form method="POST" action="{{ route('salary.save') }}">
+                            @csrf
+                            <input type="hidden" name="user_id" value="{{ $user->id }}">
+                            <input type="hidden" name="valid_workdays" value="{{ $validWorkdays }}">
+                            <input type="hidden" name="invalid_workdays" value="{{ $invalidWorkdays }}">
+                            <input type="hidden" name="salary_amount" value="{{ $salaryAmount }}">
+                            <button type="submit" class="btn btn-success">Lưu Lương</button>
+                        </form>
                     @endif
-                    <button type="submit" name="action" value="save" class="btn btn-primary">Lưu trữ tính lương</button> 
-                  
+                </div>
 
                     <footer class="sticky-footer bg-white">
                         <div class="container my-auto">
@@ -68,7 +82,45 @@
         </div>
     </div>
 
-    
+    <script>
+        // Sử dụng AJAX để lấy danh sách nhân viên khi chọn phòng ban
+        $(document).ready(function () {
+    // Lắng nghe sự kiện thay đổi phòng ban
+    $('#department_id').on('change', function () {
+        var departmentId = $(this).val();
+        var employeeContainer = $('#employee-container');
+        var userSelect = $('#user_id');
+
+        if (departmentId) {
+            $.ajax({
+                url: '/get-employees/' + departmentId, // Gửi request đến route xử lý
+                method: 'GET',
+                success: function (data) {
+                    userSelect.empty(); // Xóa các option cũ
+                    userSelect.append('<option value="">Chọn nhân viên</option>'); // Thêm option mặc định
+
+                    if (data.length > 0) {
+                        // Thêm các nhân viên mới vào select
+                        $.each(data, function (index, employee) {
+                            userSelect.append('<option value="' + employee.id + '">' + employee.name + '</option>');
+                        });
+                        employeeContainer.show(); // Hiển thị danh sách nhân viên
+                    } else {
+                        userSelect.append('<option value="">Không có nhân viên nào</option>');
+                        employeeContainer.show(); // Hiển thị nhưng thông báo không có nhân viên
+                    }
+                },
+                error: function () {
+                    alert('Đã xảy ra lỗi khi tải danh sách nhân viên.');
+                }
+            });
+        } else {
+            employeeContainer.hide(); // Ẩn danh sách nhân viên nếu không chọn phòng ban
+        }
+    });
+});
+
+    </script>
         <!-- Bootstrap core JavaScript-->
         <script src="/fe-access/vendor/jquery/jquery.min.js"></script>
         <script src="/fe-access/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
