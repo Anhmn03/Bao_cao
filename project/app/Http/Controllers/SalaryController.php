@@ -69,7 +69,7 @@ class SalaryController extends Controller
             'name' => $validatedData['name'],
             'department_id' => $validatedData['department_id'], // department_id giờ đã có thể gán giá trị            'salaryCoefficient' => $validatedData['salaryCoefficient'],
             'salaryCoefficient' => $validatedData['salaryCoefficient'],
-
+            'status' => $validatedData['status'],
             'monthlySalary' => $monthlySalary,
             'created_by' => auth()->user()->id,
             'updated_by' => auth()->user()->id,
@@ -88,18 +88,23 @@ class SalaryController extends Controller
     
 
 
-    public function show($id)
-    {
-        // Tìm mức lương theo ID
-        $salaryLevel = Salary::with('department')->findOrFail($id);
-
-        // Assuming `created_by` and `updated_by` are user IDs
-        $creator = User::find($salaryLevel->created_by);
-        $updater = User::find($salaryLevel->updated_by);   
-             $departments = Department::where('parent_id', 0)->get(); // Lấy những phòng ban có parent_id là 0
-
-        return view('fe_salary.salary_detail', compact('salaryLevel', 'departments','creator', 'updater'));
-    }
+     public function show($id)
+     {
+         // Tìm mức lương theo ID, kèm theo các thông tin của phòng ban, người tạo và người cập nhật
+         $salaryLevel = Salary::with(['department', 'creator', 'updater'])->findOrFail($id);
+     
+         // Lấy danh sách người dùng theo bậc lương (nếu có)
+         $users = $salaryLevel->users; // Giả sử có mối quan hệ users trong Salary model
+         $creator = User::find($salaryLevel->created_by);
+         $updater = User::find($salaryLevel->updated_by);   
+              $departments = Department::where('parent_id', 0)->get(); // Lấy những phòng ban có parent_id là 0
+         // Trả về view với các thông tin cần thiết
+         return view('fe_salary.salary_detail', [
+             'salaryLevel' => $salaryLevel,
+             'users' => $users, // Truyền danh sách người dùng vào view
+             'departments' => $departments,'creator' => $creator, 'updater' => $updater
+         ]);
+     }
     public function edit($id)
 {
     // Tìm mức lương theo ID
