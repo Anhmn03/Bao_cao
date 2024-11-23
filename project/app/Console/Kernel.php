@@ -13,6 +13,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('send:attendance-reminder')->everyMinute();
+        $schedule->command('app:calculate-salary')->dailyAt('23:52');
     }
 
     /**
