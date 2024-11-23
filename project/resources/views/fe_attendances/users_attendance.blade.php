@@ -19,6 +19,11 @@
     <link href="fe-access/css/sb-admin-2.min.css" rel="stylesheet">
 
     <style>
+        .badge {
+        font-size: 1rem; /* Kích thước chữ đồng nhất với các cột khác */
+        padding: 0.5rem 0.75rem; /* Điều chỉnh padding để phù hợp với chiều cao của các hàng */
+        display: inline-block;
+    }
         /* Styles cho modal */
         .modal-dialog {
             max-width: 600px;
@@ -50,19 +55,29 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
+                    @if (session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif
 
                     <!-- Form tìm kiếm theo ngày -->
-                    <form method="GET" action="{{ route('attendance') }}">
-                        <div class="form-group">
-                            <label for="search_date">Tìm kiếm theo ngày:</label>
-                            <input type="date" name="search_date" class="form-control" id="search_date" value="{{ request('search_date') }}">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Tìm kiếm</button>
-                    </form>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reminderModal">
-                        Đặt thời gian
-                    </button>
-
+                    <!-- Form tìm kiếm theo ngày và Đặt thời gian trên cùng một dòng -->
+                    <div class="d-flex align-items-center mb-4" >
+                        <form method="GET" action="{{ route('attendance') }}" class="d-flex align-items-center">
+                            <div class="form-group me-2"style="margin-bottom: 0px">
+                                <label for="search_date" class="d-block">Tìm kiếm theo ngày:</label>
+                                <input type="date" name="search_date" class="form-control" id="search_date" value="{{ request('search_date') }}">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary me-2 align-self-end">Tìm kiếm</button>
+                        </form>
+                    
+                        <!-- Đặt thời gian button -->
+                        <button type="button" class="btn btn-primary align-self-end " style="margin-left: 10px" data-bs-toggle="modal" data-bs-target="#reminderModal">
+                            Đặt thời gian
+                        </button>
+                    </div>
                     <!-- Lịch sử Check In/Out -->
                     <div class="d-flex justify-content-between mb-4">
                         <h3 class="text-center">Lịch sử Check In/Out</h3>
@@ -101,7 +116,7 @@
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $attendance->user->name }}</td>
                                 <td>{{ ucfirst($attendance->type) }}</td> <!-- Checkin/Checkout -->
-                                <td>{{ $attendance->time->format('H:i d/m/Y') }}</td>
+                                <td>{{ $attendance->time }}</td>
                                 <td>
                                     @if ($attendance->status == 0)
                                         <span class="badge badge-danger">Không hợp lệ</span>
@@ -109,48 +124,61 @@
                                         <span class="badge badge-success">Hợp lệ</span>
                                     @elseif ($attendance->status == 2)
                                         <span class="badge badge-info">Lý do đã được chấp nhận</span>
+                                    @elseif ($attendance->status == 3)
+                                        <span class="badge badge-warning">Lý do đã bị từ chối</span>
                                     @endif
+                                    {{-- {{ dd($attendance->status) }} --}}
                                 </td>
                                 <td>
-                                    @if ($attendance->status == 0)
-                                        <!-- Button to trigger modal -->
-                                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#justificationModal-{{ $attendance->id }}">
-                                            Giải trình
-                                        </button>
-                                        
-                                        <!-- Modal for justification -->
-                                        <div class="modal fade" id="justificationModal-{{ $attendance->id }}" tabindex="-1" aria-labelledby="justificationModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="justificationModalLabel">Giải trình cho nhân viên {{ $attendance->user->name }}</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <form action="{{ route('attendance.addJustification', $attendance->id) }}" method="POST">
-                                                        @csrf
-                                                        <div class="modal-body">
-                                                            <div class="form-group">
-                                                                <label for="justificationTextarea">Lý do giải trình</label>
-                                                                <textarea name="justification" id="justificationTextarea" class="form-control" placeholder="Nhập lý do giải trình" required></textarea>
+                                    @if ($attendance->justification)
+                                        <!-- Display the existing justification if it already exists -->
+                                        <p id="justificationDisplay-{{ $attendance->id }}">{{ $attendance->justification }}</p>
+                                    @else
+                                        <!-- If status is invalid and no justification exists, allow user to add one -->
+                                        @if ($attendance->status == 0)
+                                            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#justificationModal-{{ $attendance->id }}">
+                                                Giải trình
+                                            </button>
+                                
+                                            <!-- Modal for adding justification -->
+                                            <div class="modal fade" id="justificationModal-{{ $attendance->id }}" tabindex="-1" aria-labelledby="justificationModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" id="justificationModalLabel">Giải trình cho nhân viên {{ $attendance->user->name }}</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form action="{{ route('attendance.addJustification', $attendance->id) }}" method="POST">
+                                                            @csrf
+                                                            <div class="modal-body">
+                                                                <div class="form-group">
+                                                                    <label for="justificationReason">Chọn lý do giải trình:</label>
+                                                                    <select name="justification_reason" id="justificationReason-{{ $attendance->id }}" class="form-control" required>
+                                                                        <option value="">Chọn lý do</option>
+                                                                        <option value="Hôm nay tôi xin phép đến muộn">Đến muộn</option>
+                                                                        <option value="Lý do xin về sớm vì nhà có công việc đột xuất.">Về sớm</option>
+                                                                        <option value="Other">Khác</option>
+                                                                    </select>
+                                                                    
+                                                                    <div class="form-group" id="otherJustification" style="display: none;">
+                                                                        <label for="otherJustificationTextarea">Lý do khác:</label>
+                                                                        <textarea name="other_justification" id="otherJustificationTextarea" class="form-control" placeholder="Nhập lý do khác"></textarea>
+                                                                    </div>
                                                             </div>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                                                            <button type="submit" class="btn btn-primary">Gửi</button>
-                                                        </div>
-                                                    </form>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                                                <button type="submit" class="btn btn-primary">Gửi</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    @elseif ($attendance->status == 2)
-                                        <!-- Hiển thị lý do đã được chấp nhận -->
-                                        <p>{{ $attendance->justification }}</p>
-                                    @else
-                                        --
+                                        @endif
                                     @endif
                                 </td>
                                 
-                              </tr>
+                              
+                            </tr>
                             @endforeach
                         </tbody>
                     </table>
@@ -191,6 +219,32 @@
                     </div>
                 </div>
             </div>
+            <script>
+         document.addEventListener("DOMContentLoaded", function () {
+    // Gắn event listener cho tất cả các dropdown trong modal
+    document.querySelectorAll('[id^="justificationReason"]').forEach(function (selectElement) {
+        selectElement.addEventListener("change", function () {
+            // Lấy modal chứa dropdown hiện tại
+            var modal = this.closest(".modal");
+
+            // Lấy phần 'Other' justification
+            var otherJustificationDiv = modal.querySelector(".form-group#otherJustification");
+            var otherJustificationTextarea = modal.querySelector("textarea#otherJustificationTextarea");
+
+            // Kiểm tra giá trị đã chọn
+            if (this.value === "Other") {
+                otherJustificationDiv.style.display = "block"; // Hiển thị textarea
+                otherJustificationTextarea.required = true;    // Đặt yêu cầu nhập
+            } else {
+                otherJustificationDiv.style.display = "none";  // Ẩn textarea
+                otherJustificationTextarea.required = false;   // Xóa yêu cầu nhập
+            }
+        });
+    });
+});
+
+
+            </script>
            
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
@@ -211,13 +265,18 @@
 
     <!-- Script to auto-show modal after submission -->
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            if (window.location.href.indexOf("justification-submitted=true") > -1) {
-                var modalId = "{{ session('attendanceId') }}"; // Attendance ID saved after submission
-                var modal = new bootstrap.Modal(document.getElementById("justificationModal-" + modalId));
-                modal.show();
-            }
-        });
+    document.addEventListener("DOMContentLoaded", function() {
+    // Kiểm tra nếu có attendanceId trong session
+    if ("{{ session('attendanceId') }}") {
+        var modalId = "{{ session('attendanceId') }}";
+        var modal = new bootstrap.Modal(document.getElementById('justificationModal-' + modalId));
+        modal.show();
+        
+        // Đặt nội dung giải trình vào modal hoặc hiển thị ở bảng nếu cần
+        var justificationText = "{{ session('justification') }}";
+        document.getElementById('justificationDisplay-' + modalId).textContent = justificationText;
+    }
+});
     </script>
 </body>
 
