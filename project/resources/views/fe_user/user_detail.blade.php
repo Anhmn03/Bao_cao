@@ -128,16 +128,33 @@
                                             <option value="Nhân viên" {{ $user->position == 'Nhân viên' ? 'selected' : '' }}>Nhân viên</option>
                                         </select>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="department_id">Chọn phòng ban</label>
-                                        <select name="department_id" id="department_id" class="form-control">
+                                    {{-- <div id="department-container">
+                                        <label for="department-dropdown">Chọn phòng ban</label>
+                                        <select id="department-dropdown" class="form-control" name="department_id">
+                                            <option value="">Chọn phòng ban</option>
                                             @foreach ($departments as $department)
-                                                <option value="{{ $department->id }}" {{ $user->department_id == $department->id ? 'selected' : '' }}>
-                                                    {{ $department->name }}
-                                                </option>
+                                                <option value="{{ $department->id }}" data-level="0">{{ $department->name }}</option>
                                             @endforeach
                                         </select>
+                                        <ul id="department-path" class="list-unstyled mt-2"></ul> <!-- Hiển thị đường dẫn -->
+                                    </div> --}}
+                                    
+                                    <div class="form-group">
+                                        <label for="department_id">Phòng Ban:</label>
+                                        <select id="department_id" name="department_id" class="form-control select2" required>
+                                            <option value="">Chọn phòng ban</option>
+                                            @foreach ($departments as $department)
+                                                <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                                @if (count($department->children))
+                                                    @include('fe_department.department_children', ['children' => $department->children, 'prefix' => '--'])
+                                                @endif
+                                            @endforeach
+                                        </select>
+                                        @error('department_id')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
                                     </div>
+    
                                     <div class="form-group">
                                         <label for="salary_id">Chọn hệ số lương</label>
                                         <select name="salary_id" id="salary_id" class="form-control">
@@ -196,7 +213,7 @@
     <script src="/fe-access/js/sb-admin-2.min.js"></script>
 
     <!-- Custom Script for filtering salary options based on department selection -->
-    <script>
+    {{-- <script>
         document.addEventListener('DOMContentLoaded', function() {
             var departmentSelect = document.getElementById('department_id');
             var salarySelect = document.getElementById('salary_id');
@@ -215,6 +232,69 @@
 
             // Trigger the change event to initially populate salary options
             departmentSelect.dispatchEvent(new Event('change'));
+        });
+    </script> --}}
+    <script>
+        const departmentDropdown = document.getElementById('department-dropdown');
+        const departmentPath = document.getElementById('department-path');
+    
+        departmentDropdown.addEventListener('change', function () {
+            const selectedValue = this.value;
+            const selectedText = this.options[this.selectedIndex].text;
+    
+            if (!selectedValue) return;
+    
+            // Gửi yêu cầu lấy danh sách phòng ban con
+            fetch(`/departments/${selectedValue}/children`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        // Xóa các tùy chọn hiện tại, giữ lại "Chọn phòng ban"
+                        departmentDropdown.innerHTML = '<option value="">Chọn phòng ban</option>';
+    
+                        // Thêm các phòng ban con
+                        data.forEach(department => {
+                            const option = document.createElement('option');
+                            option.value = department.id;
+                            option.textContent = `${selectedText} -> ${department.name}`;
+                            departmentDropdown.appendChild(option);
+                        });
+    
+                        // Cập nhật danh sách hiển thị phân cấp
+                        const li = document.createElement('li');
+                        li.textContent = selectedText;
+                        li.dataset.id = selectedValue;
+                        departmentPath.appendChild(li);
+                    } else {
+                        alert('Phòng ban này không có cấp con.');
+                    }
+                })
+                .catch(error => console.error('Lỗi khi tải phòng ban con:', error));
+        });
+    
+        // Khi nhấn vào đường dẫn để quay lại cấp trên
+        departmentPath.addEventListener('click', function (event) {
+            if (event.target.tagName === 'LI') {
+                const selectedId = event.target.dataset.id;
+    
+                // Xóa các cấp con sau cấp vừa chọn
+                while (event.target.nextSibling) {
+                    event.target.nextSibling.remove();
+                }
+    
+                // Gửi yêu cầu để hiển thị lại cấp hiện tại
+                fetch(`/departments/${selectedId}/children`)
+                    .then(response => response.json())
+                    .then(data => {
+                        departmentDropdown.innerHTML = '<option value="">Chọn phòng ban</option>';
+                        data.forEach(department => {
+                            const option = document.createElement('option');
+                            option.value = department.id;
+                            option.textContent = department.name;
+                            departmentDropdown.appendChild(option);
+                        });
+                    });
+            }
         });
     </script>
 </body>

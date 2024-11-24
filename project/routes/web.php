@@ -1,3 +1,5 @@
+
+
 <?php
 
 use App\Http\Controllers\DepartmentController;
@@ -56,6 +58,9 @@ Route::middleware('auth')->group(function () {
         ->name('departments.updateStatus');
     Route::get('/departments/{id}/sub-departments', [DepartmentController::class, 'showSubDepartments'])->name('departments.subDepartments');
     Route::get('/departments/search', [DepartmentController::class, 'search'])->name('departments.search');
+    Route::get('/departments/tree', [DepartmentController::class, 'getDepartments'])->name('departments.tree');
+    Route::get('/fetch-sub-departments/{parentId}', [DepartmentController::class, 'fetchSubDepartments']);
+
 });
 
 // User management routes
@@ -75,6 +80,8 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/setting/edit',[SettingController::class, 'edit'])->name('setting.edit');
     Route::post('/setting/update',[SettingController::class, 'updateCheckInOutTime'])->name('setting.update');
     Route::post('/settings/update-reminder-time-checkout', [SettingController::class, 'updateReminderTimeCheckout'])->name('setting.updateReminderTimeCheckout');
+    Route::get('/departments/{parentId}/children', [UserController::class, 'fetchSubDepartments']);
+
 
 });
 
@@ -117,6 +124,9 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/salary_cacu', [Salary_caculate::class, 'showCaculate'])->name('salary_caculate');
     Route::get('/salary-calculate', [Salary_caculate::class, 'index'])->name('salary.calculate');
+    Route::post('/salary_cacu/save', [Salary_caculate::class, 'saveSalary'])->name('salary.save'); // Lưu thông tin tính lương
+    Route::get('get-employees/{departmentId}', [Salary_caculate::class, 'getEmployeesByDepartment']);
     Route::post('/salary/save', [Salary_caculate::class, 'saveSalary'])->name('salary.save');
-
+    Route::post('/caculateAll', [Salary_caculate::class, 'calculateSalariesForAllEmployees'])->name('caculate.all');
+    Route::post('save_salary', [Salary_caculate::class, 'saveAllSalaries'])->name('save.salary');
 });
