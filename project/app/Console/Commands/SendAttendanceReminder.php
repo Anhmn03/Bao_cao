@@ -8,6 +8,7 @@ use App\Mail\EmailCheckoutReminder;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 
 class SendAttendanceReminder extends Command
 {
@@ -31,9 +32,13 @@ class SendAttendanceReminder extends Command
     }
 
     
-    public function handle()
+    /**
+     * Handle execution of the command to send attendance reminders.
+     *
+     * @return int
+     */
+    public function handle(): int
     {
-        // Lấy tất cả người dùng có `reminder_time` đúng với thời gian hiện tại
         $currentTime = Carbon::now()->format('H:i');
         $users = User::where('reminder_time', $currentTime)->get();
 
@@ -41,14 +46,19 @@ class SendAttendanceReminder extends Command
             Mail::to($user->email)->send(new EmailReminder($user, $user->reminder_time));
             $this->info("Email sent to {$user->email} at {$user->reminder_time}");
         }
-        $checkoutTime = '09:23';
-        if ($currentTime === $checkoutTime) {
-            $checkoutUsers = User::all();  // Lấy tất cả người dùng để gửi nhắc nhở checkout
-            foreach ($checkoutUsers as $user) {
-                Mail::to($user->email)->send(new EmailCheckoutReminder($user, 'checkout'));
-                $this->info("Check-out email sent to {$user->email} at $checkoutTime");
+
+        $reminderTimeCheckout = DB::table('settings')->where('key', 'reminder_timeCheckout')->value('value');
+    
+    
+        // Send reminder emails if it's the reminder time for checkout
+        if ($currentTime === $reminderTimeCheckout) {
+            $checkoutReminderUsers = User::all();
+            foreach ($checkoutReminderUsers as $user) {
+                Mail::to($user->email)->send(new EmailCheckoutReminder($user, 'reminder_checkout'));
+                $this->info("Reminder checkout email sent to {$user->email} at $reminderTimeCheckout");
             }
         }
+
         return Command::SUCCESS;
     }
 }

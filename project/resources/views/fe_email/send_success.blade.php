@@ -38,13 +38,12 @@
 <body>
     <div class="container">
         <div class="header">
-            <h2>Thông Báo Từ Chối Giải Trình</h2>
+            <h2>Thông Báo Chấp Nhận Giải Trình</h2>
         </div>
         <div class="content">
             <p>Kính gửi: <strong>{{ $user->name }}</strong>,</p>
-            <p>Chúng tôi rất tiếc phải thông báo rằng lý do giải trình của bạn đã không được chấp nhận sau khi xem xét.</p>
-            <p><strong>Lý do từ chối:</strong> {{ $rejectionReason }}</p>
-            <p>Chúng tôi mong rằng bạn hiểu và hợp tác trong quá trình làm việc. Nếu có thắc mắc hoặc cần giải thích thêm, xin vui lòng liên hệ với phòng Hành chính - Nhân sự.</p>
+            <p>Trạng thái chấm công của bạn đã được thay đổi thành "Chấp nhận lý do giải trình".</p>
+            <p>Cảm ơn bạn đã cung cấp lý do hợp lệ.</p>
             <p>Xin chân thành cảm ơn sự hợp tác của bạn.</p>
         </div>
         <div class="footer">
