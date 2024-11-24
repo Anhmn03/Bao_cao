@@ -10,6 +10,8 @@
     <link href="/fe-access/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
     <link href="/fe-access/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
 </head>
 <body id="page-top">
     <div id="wrapper">
@@ -27,32 +29,26 @@
                     <div class="card mt-4">
                         <div class="card-body">
                             <h4 class="card-title mb-4">Thêm Người Dùng Mới</h4>
-                            <form action="{{ route('users.create') }}" method="GET">
-                                <div class="form-group">
-                                    <label for="parent_department">Phòng ban cha:</label>
-                                    <select name="parent_id" id="parent_department" class="form-control" onchange="this.form.submit()">
-                                        <option value="">-- Chọn phòng ban cha --</option>
-                                        @foreach($departments as $department)
-                                            @if($department->status == 1) <!-- Kiểm tra trạng thái -->
-                                                <option value="{{ $department->id }}" {{ request('parent_id') == $department->id ? 'selected' : '' }}>
-                                                    {{ $department->name }}
-                                                </option>
-                                            @endif
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </form>
+                            
 
                             <form id="createUserForm" action="{{ route('users.store') }}" method="POST">
                                 @csrf
+                                
+                             
                                 <div class="form-group">
-                                    <label for="department_id">Phòng ban con:</label>
-                                    <select name="department_id" id="department_id" class="form-control" required>
-                                        <option value="">-- Chọn phòng ban con --</option>
-                                        @foreach($subDepartments as $subDepartment)
-                                            <option value="{{ $subDepartment->id }}">{{ $subDepartment->name }}</option>
+                                    <label for="department_id">Phòng Ban:</label>
+                                    <select id="department_id" name="department_id" class="form-control select2" required>
+                                        <option value="">Chọn phòng ban</option>
+                                        @foreach ($departments as $department)
+                                            <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                            @if (count($department->children))
+                                                @include('fe_department.department_children', ['children' => $department->children, 'prefix' => '--'])
+                                            @endif
                                         @endforeach
                                     </select>
+                                    @error('department_id')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
                                 </div>
 
                                 <div class="form-group">
@@ -113,8 +109,12 @@
 
 
 
-                                <button type="submit" class="btn btn-primary btn-block">Thêm Người Dùng</button>
-                            </form>
+                                <div class="d-flex justify-content-between mt-4">
+                                    <button onclick="window.history.back();" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-arrow-left"></i> Quay lại
+                                    </button>
+                                    <button type="submit" class="btn btn-primary btn-sm">Thêm Người Dùng</button>
+                                </div>                            </form>
                         </div>
                     </div>
                 </div>
@@ -133,10 +133,54 @@
     <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
     </a>
+    <style>
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        .mt-4 {
+            margin-top: 1.5rem;
+        }
+    </style>
 
     <script src="fe-access/vendor/jquery/jquery.min.js"></script>
     <script src="fe-access/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="fe-access/vendor/jquery-easing/jquery.easing.min.js"></script>
     <script src="fe-access/js/sb-admin-2.min.js"></script>
+  
+  {{-- <div class="form-group">
+    <label for="department_id">Phòng Ban:</label>
+    <select id="department_id" name="department_id" class="form-control select2" required>
+        <option value="">Chọn phòng ban</option>
+        @foreach ($departments as $department)
+            <option value="{{ $department->id }}">{{ $department->name }}</option>
+            @if (count($department->children))
+                @include('fe_department.department_children', ['children' => $department->children, 'prefix' => '--'])
+            @endif
+        @endforeach
+    </select>
+    @error('department_id')
+        <span class="text-danger">{{ $message }}</span>
+    @enderror
+</div> --}}
+{{-- <script>
+    $(document).ready(function() {
+        $('.select2').select2({
+            placeholder: "Chọn phòng ban",
+            allowClear: true,
+            minimumInputLength: 1, // Số ký tự tối thiểu để kích hoạt tìm kiếm
+            width: '100%' // Giữ chiều rộng của select box
+        });
+    });
+</script> --}}
+<script>
+    $('.select2').select2({
+    placeholder: "Chọn phòng ban",
+    allowClear: true,
+    minimumInputLength: 1,
+    width: '200px' // Đặt chiều rộng tại đây
+});
+</script>
+
 </body>
 </html> 
