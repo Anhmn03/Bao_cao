@@ -63,6 +63,11 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
+                    @if(session('warning'))
+    <div class="alert alert-warning">
+        {{ session('warning') }}
+    </div>
+@endif
 
                     @if (session('error'))
                         <div class="alert alert-danger">
@@ -135,15 +140,21 @@
                                         @foreach ($leaveRequests as $index => $request)
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
-                                                <td>{{ $request->reason }}</td>
+                                                <td>
+                                                    @if($request->reason == 'Khác')
+                                                        {{ $request->other_reason }} <!-- Hiển thị lý do người dùng nhập -->
+                                                    @else
+                                                        {{ $request->reason }} <!-- Hiển thị lý do đã chọn -->
+                                                    @endif
+                                                </p></td>
                                                 <td>{{ $request->start_date }}</td>
                                                 <td>{{ $request->end_date }}</td>
                                                 <td>
-                                                    @if ($request->status === 'Pending')
+                                                    @if ($request->status === '0')
                                                         <span class="badge bg-warning">Đang chờ</span>
-                                                    @elseif ($request->status === 'approved')
+                                                    @elseif ($request->status === '1')
                                                         <span class="badge bg-success">Đã duyệt</span>
-                                                    @else
+                                                        @elseif ($request->status === '2')
                                                         <span class="badge bg-danger">Từ chối</span>
                                                     @endif
                                                 </td>
@@ -173,16 +184,24 @@
                                                 <option value="">Chọn lý do</option>
                                                 <option value="Nghỉ thai sản">Nghỉ thai sản</option>
                                                 <option value="Nghỉ kết hôn">Nghỉ kết hôn</option>
-                                                <option value="Lý do cá nhân">Lý do cá nhân</option>
+                                                <option value="Sức khỏe không ổn định">Sức khỏe không ổn định</option>
                                                 <option value="Khác">Khác</option>
                                             </select>
                                         </div>
 
                                         <!-- Ô text ẩn, chỉ hiện khi chọn "Khác" -->
-                                        <div id="otherReasonContainer" class="mb-3" style="display: none;">
-                                            <label for="other_reason" class="form-label">Nhập lý do khác</label>
-                                            <input type="text" id="other_reason" name="other_reason" class="form-control">
+                                        {{-- <div id="otherReasonContainer" class="mb-3" style="display: none;">
+                                            <label for="custom_reason" class="form-label">Nhập lý do khác</label>
+                                            <input type="text" id="custom_reason" name="custom_reason" class="form-control">
+                                        </div> --}}
+                                        <div class="form-group" id="other-reason-group" style="display:none;">
+                                            <label for="other-reason">Lý do khác:</label>
+                                            <input type="text" class="form-control" id="other-reason" name="other_reason">
                                         </div>
+                                        {{-- <div id="otherReasonContainer" style="display: none;">
+                                            <label for="other_reason" class="label">Lý do khác:</label>
+                                            <input id="other_reason" name="other_reason" placeholder="Nhập lý do khác tại đây..." rows="4" class="input-textarea"></input>
+                                        </div> --}}
 
                                         <div class="mb-3">
                                             <label for="start_date" class="form-label">Ngày bắt đầu</label>
@@ -213,7 +232,7 @@
         </div>
     </div>
 
-<script>
+{{-- <script>
 document.addEventListener('DOMContentLoaded', function () {
     const reasonSelect = document.getElementById('reason');
     const otherReasonContainer = document.getElementById('otherReasonContainer');
@@ -266,6 +285,67 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+
+</script> --}}
+
+{{-- <script>
+    // Hàm xử lý thay đổi lựa chọn lý do
+    function handleReasonChange() {
+        const reasonSelect = document.getElementById('reason');
+        const otherReasonContainer = document.getElementById('otherReasonContainer');
+
+        if (reasonSelect.value === "Khác") {
+            otherReasonContainer.style.display = "block"; // Hiển thị ô nhập lý do khác
+        } else {
+            otherReasonContainer.style.display = "none"; // Ẩn ô nhập lý do khác
+        }
+    }
+
+    // Gắn sự kiện khi tài liệu đã sẵn sàng
+    document.addEventListener('DOMContentLoaded', function () {
+        const reasonSelect = document.getElementById('reason');
+        reasonSelect.addEventListener('change', handleReasonChange); // Gọi hàm khi thay đổi lựa chọn lý do
+        handleReasonChange(); // Gọi hàm ngay khi trang load, để kiểm tra nếu lý do đã được chọn là "Khác"
+    });
+</script> --}}
+
+<script>
+    // function handleReasonChange() {
+    //     const reasonSelect = document.getElementById('reason');
+    //     const otherReasonContainer = document.getElementById('otherReasonContainer');
+
+    //     if (reasonSelect.value === "Khác") {
+    //         otherReasonContainer.style.display = "block";
+    //     } else {
+    //         otherReasonContainer.style.display = "none";
+    //     }
+    // }
+
+    // document.addEventListener('DOMContentLoaded', function () {
+    //     const reasonSelect = document.getElementById('reason');
+    //     reasonSelect.addEventListener('change', handleReasonChange);
+    //     handleReasonChange(); // Kiểm tra giá trị khi tải trang
+    // });
+    // Khi lý do được thay đổi
+document.getElementById('reason').addEventListener('change', function () {
+    var reason = this.value;
+    var otherReasonGroup = document.getElementById('other-reason-group');
+
+    // Kiểm tra nếu lý do là "Khác"
+    if (reason === 'Khác') {
+        otherReasonGroup.style.display = 'block';  // Hiển thị ô nhập lý do khác
+    } else {
+        otherReasonGroup.style.display = 'none';  // Ẩn ô nhập lý do khác
+    }
+});
+
+// Kiểm tra nếu đã điền lý do "Khác" khi load trang
+window.onload = function () {
+    var reason = document.getElementById('reason').value;
+    if (reason === 'Khác') {
+        document.getElementById('other-reason-group').style.display = 'block';
+    }
+};
 
 </script>
 
