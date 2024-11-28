@@ -27,6 +27,14 @@
             <span>Quản lý chấm công</span>
         </a>
     </li>
+    <hr class="sidebar-divider">
+
+    <li class="nav-item">
+        <a class="nav-link" href="{{ route('leave') }}">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Ngày nghỉ</span>
+        </a>
+    </li>
 
     <!-- Divider -->
     <hr class="sidebar-divider d-none d-md-block">
