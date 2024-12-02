@@ -19,32 +19,50 @@
                     <h1 class="mb-4">Tính Lương Nhân Viên</h1>
                      <form method="GET" action="{{ route('salary.calculate') }}" id="salary-form">
                         <!-- Chọn phòng ban -->
-                        <select name="department_id" id="department_id" required>
-                            <option value="">Chọn phòng ban</option>
-                            @foreach($departments as $department)
-                                <option value="{{ $department->id }}" {{ request('department_id') == $department->id ? 'selected' : '' }}>
-                                    {{ $department->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        
-                        <!-- Nhân viên (Hiển thị khi phòng ban đã chọn) -->
-                        <div id="employee-container">
-                            @if(isset($employees) && count($employees) > 0)
-                                <select name="user_id" id="user_id" required>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="department_id">Chọn Phòng Ban</label>
+    {{-- <select name="department_id" id="department_id" class="form-control">
+        <option value="">-- Chọn Phòng Ban --</option>
+        @foreach($departments as $department)
+            <option value="{{ $department->id }}" 
+                {{ request('department_id') == $department->id ? 'selected' : '' }}>
+                {{ $department->name }}
+            </option>
+
+            <!-- Gọi hàm đệ quy để hiển thị phòng ban con của phòng ban cấp cao nhất -->
+            @foreach($department->subDepartments as $subDepartment)
+                @include('fe_salary.department_tree', ['department' => $subDepartment, 'level' => 1])
+            @endforeach
+        @endforeach
+    </select> --}}
+    <select name="department_id" id="department_id" required>
+        <option value="">Chọn phòng ban</option>
+        @foreach($departments as $department)
+            <option value="{{ $department->id }}" {{ request('department_id') == $department->id ? 'selected' : '' }}>
+                {{ $department->name }}
+            </option>
+        @endforeach
+    </select>
+                            </div>
+            
+                            <div class="col-md-4">
+                                <label for="user_id" class="form-label">Chọn Nhân Viên</label>
+                                <select name="user_id" id="user_id" class="form-select">
                                     <option value="">Chọn nhân viên</option>
                                     @foreach($employees as $employee)
-                                        <option value="{{ $employee->id }}" {{ request('user_id') == $employee->id ? 'selected' : '' }}>
+                                        <option value="{{ $employee->id }}"
+                                                {{ isset($user) && $user->id == $employee->id ? 'selected' : '' }}>
                                             {{ $employee->name }}
                                         </option>
                                     @endforeach
                                 </select>
-                            @else
-                                <p>Chưa có nhân viên nào trong phòng ban này.</p>
-                            @endif
+                            </div>
+            
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary mt-4">Tính Lương</button>
+                            </div>
                         </div>
-
-                        <button type="submit">Tính lương</button>
                     </form>
                     
                     

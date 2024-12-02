@@ -144,16 +144,26 @@
                                             @endif
                                         @endforeach
                                     </tr>
+                                    
                                     <tr>
-                                        <th>Lương Tháng (nghìn đồng)</th>
+                                        <th>Lương Ngày (VNĐ)</th>
                                         @foreach ($salaries as $salary)
                                             @if ($salary->department_id == $department->id)
-                                                <td>{{ number_format($salary->monthlySalary / 1000, 0, ',', '.') }}</td>
+                                                <td>{{ number_format($salary->dailySalary, 0, ',', '.') }}</td> <!-- Assuming 30 days in a month -->
+                                            @endif
+                                        @endforeach
+                                    </tr>
+                                    <tr>
+                                        <th>Lương Tháng (VNĐ)</th>
+                                        @foreach ($salaries as $salary)
+                                            @if ($salary->department_id == $department->id)
+                                                <td>{{ number_format($salary->monthlySalary, 0, ',', '.') }}</td>
                                             @endif
                                         @endforeach
                                     </tr>
                                 </tbody>
                             </table>
+                            
                         @endforeach
                     </div>
                 </div>
