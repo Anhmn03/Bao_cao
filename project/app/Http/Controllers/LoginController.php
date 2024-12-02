@@ -37,7 +37,7 @@ class LoginController extends Controller
         // Chuyển hướng dựa trên vai trò của người dùng
         if ($user->role == 1) {
             return redirect()->route('departments')->with('success', 'Đăng nhập thành công');
-        } elseif ($user->role == 2) {
+        } elseif (in_array($user->role, [2, 3, 4])) {
             return redirect()->route('attendance')->with('success', 'Đăng nhập thành công');
         }
 
