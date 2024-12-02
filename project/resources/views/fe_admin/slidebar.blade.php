@@ -1,3 +1,5 @@
+
+
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
     <!-- Sidebar - Brand -->
@@ -51,6 +53,11 @@
                 <span>Cấu hình thời gian</span>
             </a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('salary_caculate') }}">
+                <span>Tính lương</span>
+            </a>
+        </li>
     </ul>
 </li>
 
@@ -61,6 +68,30 @@
             <i class="fas fa-fw fa-tachometer-alt"></i>
             <span >Quản lý bậc lương </span></a>
     </li>
+
+    <hr class="sidebar-divider d-none d-md-block">
+    <li class="nav-item active">
+        <a class="nav-link" href="{{ route('leave_admin') }}">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span >Quản lý đơn xin nghỉ phép </span></a>
+    </li>
+
+    <hr class="sidebar-divider d-none d-md-block">
+    <li class="nav-item active">
+        <a class="nav-link">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span >Thống kê </span>
+        </a>
+        <ul class="nav flex-column pl-4" style="opacity: 0.5;">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('userDepChart') }}">
+                    <span>Nhân sự trong các phòng ban</span>
+                </a>
+            </li>
+        </ul>
+
+    </li>
+
 
     {{-- <hr class="sidebar-divider d-none d-md-block">
     <li class="nav-item active">

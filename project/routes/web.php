@@ -9,6 +9,9 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\TestExcelController;
 use App\Exports\UsersExport;
 use App\Http\Controllers\Caculate_Salary;
+use App\Http\Controllers\ChartController;
+use App\Http\Controllers\Leave_requestController;
+use App\Http\Controllers\LeaveConfigController;
 use App\Http\Controllers\Salary_caculate;
 use App\Http\Controllers\SalaryController;
 use App\Http\Controllers\SettingController;
@@ -81,6 +84,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('/setting/update',[SettingController::class, 'updateCheckInOutTime'])->name('setting.update');
     Route::post('/settings/update-reminder-time-checkout', [SettingController::class, 'updateReminderTimeCheckout'])->name('setting.updateReminderTimeCheckout');
     Route::get('/departments/{parentId}/children', [UserController::class, 'fetchSubDepartments']);
+    Route::get('/salaries/{departmentId}', [UserController::class, 'getSalaries']);
 
 
 });
@@ -99,6 +103,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/manage-attendances', [User_attendanceController::class, 'manageInvalidAttendances'])->name('admin.manageAttendances');
     Route::post('/admin/approve-attendance/{id}', [User_attendanceController::class, 'approveAttendance'])->name('admin.approveAttendance');
     Route::post('/admin/reject-attendance/{id}', [User_attendanceController::class, 'rejectAttendance'])->name('admin.rejectAttendance');
+    Route::get('leave',[LeaveConfigController::class, 'show'])->name('leave');
+    Route::post('/leave/store',[LeaveConfigController::class, 'store'])->name('leave.store');
 });
 
 // Route::get('/users/export', function () {
@@ -129,4 +135,23 @@ Route::middleware('auth')->group(function () {
     Route::post('/salary/save', [Salary_caculate::class, 'saveSalary'])->name('salary.save');
     Route::post('/caculateAll', [Salary_caculate::class, 'calculateSalariesForAllEmployees'])->name('caculate.all');
     Route::post('save_salary', [Salary_caculate::class, 'saveAllSalaries'])->name('save.salary');
+    Route::post('/setting/updatecalculate',[SettingController::class, 'updateSalaryCalculationTime'])->name('setting.updatecalculate');
 });
+
+Route::middleware('auth')->group(function () {
+    Route::get('leave',[LeaveConfigController::class, 'show'])->name('leave');
+    Route::post('/leave/store',[LeaveConfigController::class, 'store'])->name('leave.store');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/leave_application',[Leave_requestController::class, 'index'])->name('leave_admin');
+    Route::post('leave_request/accept/{id}',[Leave_requestController::class,'acceptLeaveRequest'])-> name('leave_accept');
+    Route::post('/leave-request/reject/{id}', [Leave_requestController::class, 'reject'])->name('leave_reject');
+
+    // Route::post('/leave/store',[LeaveConfigController::class, 'store'])->name('leave.store');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/api/userDepChart',[ChartController::class, 'userDepChart'])->name('userDepChart');
+});
+Route::get('/chart', [App\Http\Controllers\ChartController::class, 'index']);

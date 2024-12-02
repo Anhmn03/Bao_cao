@@ -32,19 +32,20 @@
         }
         /* Form styling */
         .form-container {
-    max-width: 600px; /* Mở rộng để đảm bảo tiêu đề không xuống dòng */
-    margin: 0 auto;
-    padding: 20px;
-    background: #f8f9fc;
-    border-radius: 8px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-}
+            max-width: 600px; /* Mở rộng để đảm bảo tiêu đề không xuống dòng */
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fc;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
         .form-container label {
             font-weight: 600;
             margin-bottom: 5px;
             color: #4e73df;
         }
-        .form-container input[type="time"] {
+        .form-container input[type="time"],
+        .form-container input[type="text"] {
             width: 100%;
             padding: 10px;
             border: 1px solid #d1d3e2;
@@ -101,6 +102,26 @@
                                 <label for="check_out_time">Giờ Check-out</label>
                                 <input type="time" id="check_out_time" name="check_out_time" value="{{ $checkOutTime }}" required>
                             </div>
+                            <button type="submit">Cập nhật</button>
+                        </form>
+
+                        <!-- Form cập nhật giờ nhắc nhở checkout -->
+                        <form action="{{ route('setting.updateReminderTimeCheckout') }}" method="POST">
+                            @csrf
+                            <div>
+                                <label for="reminder_timeCheckout">Thông báo nhắc nhở giờ Check-out</label>
+                                <input type="time" id="reminder_timeCheckout" name="reminder_timeCheckout" value="{{ $reminder_timeCheckout }}" required>
+                            </div>
+                            
+                            <button type="submit">Cập nhật</button>
+                        </form>
+                        <form action="{{ route('setting.updatecalculate') }}" method="POST">
+                            @csrf
+                            <div>
+                                <label for="salary_calculation_time">Thời gian chấm công tự động</label>
+                                <input type="time" id="salary_calculation_time" name="salary_calculation_time" value="{{ $salary_calculation_time }}" required>
+                            </div>
+                            
                             <button type="submit">Cập nhật</button>
                         </form>
                     </div>
