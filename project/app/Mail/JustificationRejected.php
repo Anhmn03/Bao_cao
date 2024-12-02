@@ -15,14 +15,20 @@ class JustificationRejected extends Mailable
     public $user;
     public $justification;
     public $rejectionReason;
+    public $userJustification;
+    public $userDate;
+    public $userDepartment;
     /**
      * Create a new message instance.
      */
-    public function __construct($user, $justification, $rejectionReason)
+    public function __construct($user, $justification, $rejectionReason, $userJustification, $userDate, $userDepartment)
     {
         $this->user = $user;
         $this->justification = $justification;
         $this->rejectionReason = $rejectionReason;
+        $this->userJustification = $userJustification;
+        $this->userDate = $userDate;
+        $this->userDepartment = $userDepartment;
     }
 
     /**

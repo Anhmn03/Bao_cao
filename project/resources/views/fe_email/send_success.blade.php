@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thông Báo Từ Chối Giải Trình</title>
+    <title>Thông Báo Chấp Nhận Giải Trình</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,6 +24,10 @@
             text-align: center;
             padding-bottom: 20px;
         }
+        .header img {
+            max-width: 100px;
+            margin-bottom: 10px;
+        }
         .content {
             padding: 20px;
         }
@@ -33,23 +37,39 @@
             color: #777;
             text-align: center;
         }
+        .info {
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
+            <img src="resources/img/banner.ipg" alt="Logo Công ty">
             <h2>Thông Báo Chấp Nhận Giải Trình</h2>
+            <h4>Công Ty TNHH ABC</h4>
         </div>
         <div class="content">
             <p>Kính gửi: <strong>{{ $user->name }}</strong>,</p>
-            <p>Trạng thái chấm công của bạn đã được thay đổi thành "Chấp nhận lý do giải trình".</p>
+            <p>Trạng thái chấm công của bạn đã được thay đổi thành <strong>"Chấp nhận lý do giải trình"</strong>.</p>
+            <p>Dưới đây là thông tin chi tiết:</p>
+            <div class="info">
+                <ul>
+                    <li><strong>Lý do giải trình:</strong> {{ $userJustification }}</li>
+                    <li><strong>Ngày giải trình:</strong> {{ $userDate }}</li>
+                    <li><strong>Phòng ban liên quan:</strong> {{ $userDepartment }}</li>
+                </ul>
+            </div>
             <p>Cảm ơn bạn đã cung cấp lý do hợp lệ.</p>
             <p>Xin chân thành cảm ơn sự hợp tác của bạn.</p>
         </div>
         <div class="footer">
             Trân trọng,<br>
             Ban Nhân Sự<br>
-            Công ty TNHH ABC
+            Công Ty TNHH ABC
         </div>
     </div>
 </body>

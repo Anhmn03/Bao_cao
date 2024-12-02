@@ -63,7 +63,7 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <img src="logo_company.png" alt="Logo Công ty TNHH ABC">
+            <img src="resources/img/banner.ipg" alt="Logo Công ty">
             <h2>Thư Giải Trình</h2>
         </div>
         <div class="content">

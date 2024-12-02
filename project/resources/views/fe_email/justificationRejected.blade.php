@@ -38,12 +38,23 @@
 <body>
     <div class="container">
         <div class="header">
+            <img src="resources/img/banner.ipg" alt="Logo Công ty">
             <h2>Thông Báo Từ Chối Giải Trình</h2>
+            <h4>Công Ty TNHH ABC</h4>
         </div>
         <div class="content">
             <p>Kính gửi: <strong>{{ $user->name }}</strong>,</p>
             <p>Chúng tôi rất tiếc phải thông báo rằng lý do giải trình của bạn đã không được chấp nhận sau khi xem xét.</p>
+            
+            <p><strong>Thông tin chi tiết:</strong></p>
+            <ul>
+                <li><strong>Lý do giải trình:</strong> {{ $userJustification }}</li>
+                <li><strong>Ngày giải trình:</strong> {{ $userDate }}</li>
+                <li><strong>Phòng ban liên quan:</strong> {{ $userDepartment }}</li>
+            </ul>
+            
             <p><strong>Lý do từ chối:</strong> {{ $rejectionReason }}</p>
+            
             <p>Chúng tôi mong rằng bạn hiểu và hợp tác trong quá trình làm việc. Nếu có thắc mắc hoặc cần giải thích thêm, xin vui lòng liên hệ với phòng Hành chính - Nhân sự.</p>
             <p>Xin chân thành cảm ơn sự hợp tác của bạn.</p>
         </div>

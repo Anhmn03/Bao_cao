@@ -14,13 +14,19 @@ class AttendanceApproved extends Mailable
 {
     use Queueable, SerializesModels;
     private User $user;
+    public $userJustification;
+    public $userDate;
+    public $userDepartment;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(User $user)
+    public function __construct(User $user, $userJustification, $userDate, $userDepartment)
     {
         $this->user = $user; // Gán đúng đối tượng $user
+        $this->userJustification = $userJustification;
+        $this->userDate = $userDate;
+        $this->userDepartment = $userDepartment;
     }
 
     /**
