@@ -14,6 +14,9 @@ use App\Imports\UsersImport;
 use App\Models\Salary;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
 
 
 class UserController extends Controller
@@ -248,35 +251,109 @@ class UserController extends Controller
         return view('fe_user/user_detail', compact('user', 'departments', 'subDepartments', 'salaryCoefficient'));
     }
 //bản ban đầu dùng rất ổn 
-    public function updateUser(Request $request, $id)
-    {
-        $user = User::findOrFail($id);
+public function findRootDepartmentId($departmentId)
+{
+    // Tìm phòng ban hiện tại
+    $department = Department::find($departmentId);
+    
+    // Nếu phòng ban có parent_id == 0, thì chính là phòng ban gốc
+    if ($department && $department->parent_id == 0) {
+        return $department;
+    }
 
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|max:255|unique:users,email,' . $id,
-            'phone_number' => 'required|string|max:15',
-            'position' => 'required|string',
-            'department_id' => 'required|exists:departments,id',
-            'status' => 'required|string',
-            'salary_id' => 'required|exists:salaries,id', // Xác thực salary_id
-        ]);
+    // Nếu không, tìm phòng ban gốc bằng cách gọi đệ quy
+    return $this->findRootDepartmentId($department->parent_id);
+}
+public function updateUser(Request $request, $id)
+{
+    $user = User::findOrFail($id);
 
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email|max:255|unique:users,email,' . $id,
+        'phone_number' => 'required|string|max:15',
+        'position' => 'required|string',
+        'department_id' => 'required|exists:departments,id',
+        'status' => 'required|string',
+        'salary_id' => 'required|exists:salaries,id',
+    ]);
+
+    if ($validator->fails()) {
+        return back()->withErrors($validator)->withInput();
+    }
+
+    // Tìm phòng ban gốc
+    $rootDepartmentId = $this->findRootDepartmentId($request->input('department_id'));
+
+    // Kiểm tra lương hợp lệ
+    $isValidSalary = Salary::where('department_id', $rootDepartmentId->id)
+        ->where('id', $request->input('salary_id'))
+        ->exists();
+
+    if (!$isValidSalary) {
+        return back()->withErrors(['salary_id' => 'Salary không hợp lệ cho phòng ban đã chọn.'])->withInput();
+    }
+
+   
+    // Cập nhật thông tin người dùng
+    $user->update($request->only([
+        'email',
+        'phone_number',
+        'position',
+        'department_id',
+        'status',
+        'salary_id',
+        'role',
+    ]) + ['updated_by' => Auth::id()]);
+
+    return redirect()->route('users.detail', ['id' => $user->id])
+        ->with('success', 'Thông tin người dùng đã được cập nhật thành công.');
+}
+
+
+
+
+public function getSalaries($departmentId)
+{
+    $department = Department::find($departmentId);
+
+    if (!$department) {
+        return response()->json(['error' => 'Department not found'], 404);
+    }
+
+    // Nếu phòng ban có parent_id = 0, lấy hệ số lương từ phòng ban gốc
+    if ($department->parent_id == 0) {
+        // Nếu phòng ban đã chọn là phòng ban gốc, kiểm tra các hệ số lương của chính phòng ban đó
+        $salaries = Salary::where('department_id', $department->id)->get();
+    } else {
+        // Nếu phòng ban không phải là phòng ban gốc, tìm phòng ban gốc và lấy hệ số lương từ đó
+        $rootDepartment = $this->findRootDepartmentId($department->parent_id);
+        
+        // Kiểm tra xem phòng ban gốc có tồn tại và có hệ số lương không
+        if (!$rootDepartment) {
+            return response()->json(['error' => 'Root department not found'], 404);
         }
 
-        $user->update($request->only([
-            'email',
-            'phone_number',
-            'position',
-            'department_id',
-            'status',
-            'salary_id'
-        ]) + ['updated_by' => Auth::id()]);
-
-        return redirect()->route('users.detail', ['id' => $user->id])
-            ->with('success', 'Thông tin người dùng đã được cập nhật thành công.');
+        // Lấy hệ số lương của phòng ban gốc
+        $salaries = Salary::where('department_id', $rootDepartment->id)->get();
     }
+
+    if ($salaries->isEmpty()) {
+        return response()->json(['error' => 'No salaries found for the department'], 404);
+    }
+
+    // Return salaries with salaryCoefficient, monthlySalary, and dailySalary formatted
+    return response()->json(['salaries' => $salaries->map(function($salary) {
+        return [
+            'id' => $salary->id,
+            'salaryCoefficient' => $salary->salaryCoefficient,
+            'monthlySalary' => number_format($salary->monthlySalary, 0, ',', '.') . ' VND',
+            'dailySalary' => number_format($salary->dailySalary, 0, ',', '.') . ' VND',
+        ];
+    })]);
+}
+
+
+
     public function importPost(Request $request)
     {
         $request->validate([
@@ -344,4 +421,7 @@ class UserController extends Controller
             return back()->withErrors(['error' => 'Lỗi khi cập nhật thời gian nhắc nhở']);
         }
     }
+
+
+
 }

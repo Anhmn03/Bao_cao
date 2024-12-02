@@ -37,47 +37,71 @@ class SalaryController extends Controller
     }
 
     public function store(Request $request)
-    {
-        // Xác thực dữ liệu đầu vào
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:50',
-            'department_id' => 'required|exists:departments,id',
-            'salaryCoefficient' => 'required|numeric|between:0,99.99',
-            'monthlySalary' => 'required|numeric|between:0,9999999999.99',
-            'status' => 'required|boolean',
-        ], [
-            'name.required' => 'Tên cấp báo báo bắt buộc.',
+{
+    // Xác thực dữ liệu đầu vào
+    $validatedData = $request->validate([
+        'name' => 'required|string|max:50',
+        'department_id' => 'required|exists:departments,id',
+        'salaryCoefficient' => 'required|numeric|between:0,99.99',
+        'monthlySalary' => 'required|numeric|between:0,9999999999.99',
+        'dailySalary' => 'required|numeric|between:0,9999999999.99',
+        // 'status' => 'required|boolean',
+    ], [
+        'name.required' => 'Tên cấp báo bắt buộc.',
+        'department_id.required' => 'Phòng ban là bắt buộc.',
+        'department_id.exists' => 'Phòng ban không tồn tại.',
+        'salaryCoefficient.required' => 'Hệ số lương là bắt buộc.',
+        'salaryCoefficient.numeric' => 'Hệ số lương phải là số.',
+        'salaryCoefficient.between' => 'Hệ số lương phải từ 0 đến 99.99.',
+        'monthlySalary.required' => 'Lương tháng là bắt buộc.',
+        'monthlySalary.numeric' => 'Lương tháng phải là số.',
+        'monthlySalary.between' => 'Lương tháng phải nằm trong khoảng 0 đến 9,999,999,999.99.',
+        'dailySalary.required' => 'Lương ngày là bắt buộc.',
+        'dailySalary.numeric' => 'Lương ngày phải là số.',
+        'dailySalary.between' => 'Lương ngày phải nằm trong khoảng 0 đến 9,999,999,999.99.',
+    ]);
 
-            'department_id.required' => 'Phòng ban là bắt buộc.',
-            'department_id.exists' => 'Phòng ban không tồn tại.',
-            'salaryCoefficient.required' => 'Hệ số lương là bắt buộc.',
-            'salaryCoefficient.numeric' => 'Hệ số lương phải là số.',
-            'salaryCoefficient.between' => 'Hệ số lương phải từ 0 đến 99.99.',
-            'monthlySalary.required' => 'Lương tháng là bắt buộc.',
-            'monthlySalary.numeric' => 'Lương tháng phải là số.',
-            'monthlySalary.between' => 'Lương tháng phải nằm trong khoảng 0 đến 9,999,999,999.99.',
+    // Chuyển đổi lương tháng và lương ngày từ định dạng chuỗi sang số
+    $monthlySalary = $this->parseSalary($request->monthlySalary);
+    $dailySalary = $this->parseSalary($request->dailySalary);
+
+    // Kiểm tra điều kiện lương tháng và lương ngày
+    if ($monthlySalary < 1000000 || $dailySalary < 100000) {
+        return redirect()->back()->withErrors([
+            'monthlySalary' => 'Lương tháng phải ít nhất là 1,000,000 VND.',
+            'dailySalary' => 'Lương ngày phải ít nhất là 100,000 VND.',
         ]);
-
-        // Chuyển đổi lương tháng từ chuỗi định dạng tiền tệ sang số
-        $monthlySalary = $this->parseSalary($request->monthlySalary);
-        if ($monthlySalary < 1000000) {
-            return redirect()->back()->withErrors(['monthlySalary' => 'Lương tháng phải ít nhất là 1,000,000 VND.']);
-        }
-
-        // Tạo mới Salary
-        Salary::create([
-            'name' => $validatedData['name'],
-            'department_id' => $validatedData['department_id'], // department_id giờ đã có thể gán giá trị            'salaryCoefficient' => $validatedData['salaryCoefficient'],
-            'salaryCoefficient' => $validatedData['salaryCoefficient'],
-            'status' => $validatedData['status'],
-            'monthlySalary' => $monthlySalary,
-            'created_by' => auth()->user()->id,
-            'updated_by' => auth()->user()->id,
-        ]);
-
-        // Chuyển hướng với thông báo thành công
-        return redirect()->route('salary')->with('success', 'Tạo lương thành công.');
     }
+
+    $workingDaysPerMonth = config('salary.working_days', 22); // Số ngày làm việc trung bình
+    $maxDailySalary = $monthlySalary / $workingDaysPerMonth;
+    
+    // Format lại lương ngày tối đa hợp lý
+    $maxDailySalaryFormatted = number_format($maxDailySalary, 0, ',', '.') . ' VND'; // Ví dụ: 454.545 VND
+    
+    // Kiểm tra và xử lý
+    if ($dailySalary > $maxDailySalary) {
+        return redirect()->back()->withErrors([
+            'dailySalary' => 'Lương ngày phải nhỏ hơn hoặc bằng trung bình lương tháng (' . $maxDailySalaryFormatted . '/ngày).',
+        ]);
+    }
+    
+    // Tạo mới Salary
+    Salary::create([
+        'name' => $validatedData['name'],
+        'department_id' => $validatedData['department_id'], // department_id giờ đã có thể gán giá trị
+        'salaryCoefficient' => $validatedData['salaryCoefficient'],
+        // 'status' => $validatedData['status'],
+        'monthlySalary' => $monthlySalary,
+        'dailySalary' => $dailySalary,
+        'created_by' => auth()->user()->id,
+        'updated_by' => auth()->user()->id,
+    ]);
+
+    // Chuyển hướng với thông báo thành công
+    return redirect()->route('salary')->with('success', 'Tạo lương thành công.');
+}
+
 
     /**
      * Parse a salary string into an integer
@@ -123,7 +147,8 @@ public function update(Request $request, $id)
         'name' => 'required|string|max:50',
         'salaryCoefficient' => 'required|numeric|between:0,99.99',
         'monthlySalary' => 'required|numeric|between:0,9999999999.99',
-        'status' => 'required|boolean',
+        'dailySalary' => 'required|numeric|between:0,9999999999.99',
+        // 'status' => 'required|boolean',
     ], [
         'name.required' => 'Tên cấp báo bắt buộc.',
         'salaryCoefficient.required' => 'Hệ số lương là bắt buộc.',
@@ -132,15 +157,31 @@ public function update(Request $request, $id)
         'monthlySalary.required' => 'Lương tháng là bắt buộc.',
         'monthlySalary.numeric' => 'Lương tháng phải là số.',
         'monthlySalary.between' => 'Lương tháng phải nằm trong khoảng 0 đến 9,999,999,999.99.',
+        'dailySalary.required' => 'Lương ngày là bắt buộc.',
+        'dailySalary.numeric' => 'Lương ngày phải là số.',
+        'dailySalary.between' => 'Lương ngày phải nằm trong khoảng 0 đến 9,999,999,999.99.',
     ]);
-    $status = $request->status == 1 ? true : false;
 
-    // Chuyển đổi lương tháng từ chuỗi định dạng tiền tệ sang số
+    // $status = $request->status == 1;
+
+    // Chuyển đổi lương tháng và lương ngày từ định dạng chuỗi sang số
     $monthlySalary = $this->parseSalary($request->monthlySalary);
-    
-    // Kiểm tra nếu lương tháng nhỏ hơn 1,000,000 VND
-    if ($monthlySalary < 1000000) {
-        return redirect()->back()->withErrors(['monthlySalary' => 'Lương tháng phải ít nhất là 1,000,000 VND.']);
+    $dailySalary = $this->parseSalary($request->dailySalary);
+
+    // Kiểm tra nếu lương tháng hoặc lương ngày không hợp lệ
+    if ($monthlySalary < 1000000 || $dailySalary < 100000) {
+        return redirect()->back()->withErrors([
+            'monthlySalary' => 'Lương tháng phải ít nhất là 1,000,000 VND.',
+            'dailySalary' => 'Lương ngày phải ít nhất là 100,000 VND.',
+        ]);
+    }
+
+    // Kiểm tra nếu lương ngày không hợp lý so với lương tháng
+    $maxDailySalary = $monthlySalary / 22; // 22 là số ngày làm việc trung bình trong tháng
+    if ($dailySalary > $maxDailySalary) {
+        return redirect()->back()->withErrors([
+            'dailySalary' => "Lương ngày phải nhỏ hơn hoặc bằng trung bình lương tháng ($maxDailySalary VND/ngày)."
+        ]);
     }
 
     // Tìm mức lương cần cập nhật
@@ -151,13 +192,15 @@ public function update(Request $request, $id)
         'name' => $validatedData['name'],
         'salaryCoefficient' => $validatedData['salaryCoefficient'],
         'monthlySalary' => $monthlySalary,
-        'status' => $validatedData['status'], // Trạng thái true (1) hoặc false (0)
+        'dailySalary' => $dailySalary,
+        // 'status' => $validatedData['status'], // Trạng thái true (1) hoặc false (0)
         'updated_by' => auth()->id(), // Cập nhật người thay đổi
     ]);
 
     // Chuyển hướng với thông báo thành công
     return redirect()->route('salary')->with('success', 'Cập nhật lương thành công.');
 }
+
 
 private function parseSalary($salary)
     {

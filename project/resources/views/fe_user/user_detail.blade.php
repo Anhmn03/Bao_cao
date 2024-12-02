@@ -112,74 +112,88 @@
                             <form method="post" action="{{ route('users.updatedetail', ['id' => $user->id]) }}">
                                 @csrf
                                 <div class="modal-body">
+                                    <!-- Email -->
                                     <div class="form-group">
                                         <label for="email">Email:</label>
-                                        <input type="email" class="form-control" id="email" name="email" value="{{ $user->email }}" required>
+                                        <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $user->email) }}" required>
+                                        @error('email')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
                                     </div>
+                
+                                    <!-- Phone Number -->
                                     <div class="form-group">
                                         <label for="phone_number">Số điện thoại:</label>
-                                        <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ $user->phone_number }}" required>
+                                        <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" required>
+                                        @error('phone_number')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
                                     </div>
+                
+                                    <!-- Position -->
                                     <div class="form-group">
                                         <label for="position">Chức vụ:</label>
                                         <select class="form-control" id="position" name="position" required>
-                                            <option value="Admin" {{ $user->position == 'Admin' ? 'selected' : '' }}>Admin</option>
-                                            <option value="Tổ Trưởng" {{ $user->position == 'Tổ trưởng' ? 'selected' : '' }}>Tổ trưởng</option>
-                                            <option value="Nhân viên" {{ $user->position == 'Nhân viên' ? 'selected' : '' }}>Nhân viên</option>
+                                            <option value="Admin" {{ old('position', $user->position) == 'Admin' ? 'selected' : '' }}>Admin</option>
+                                            <option value="Tổ trưởng" {{ old('position', $user->position) == 'Tổ trưởng' ? 'selected' : '' }}>Tổ trưởng</option>
+                                            <option value="Nhân viên" {{ old('position', $user->position) == 'Nhân viên' ? 'selected' : '' }}>Nhân viên</option>
                                         </select>
+                                        @error('position')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
                                     </div>
-                                    {{-- <div id="department-container">
-                                        <label for="department-dropdown">Chọn phòng ban</label>
-                                        <select id="department-dropdown" class="form-control" name="department_id">
-                                            <option value="">Chọn phòng ban</option>
-                                            @foreach ($departments as $department)
-                                                <option value="{{ $department->id }}" data-level="0">{{ $department->name }}</option>
-                                            @endforeach
-                                        </select>
-                                        <ul id="department-path" class="list-unstyled mt-2"></ul> <!-- Hiển thị đường dẫn -->
-                                    </div> --}}
-                                    
+                
+                                    <!-- Department (include children) -->
                                     <div class="form-group">
                                         <label for="department_id">Phòng Ban:</label>
                                         <select id="department_id" name="department_id" class="form-control select2" required>
                                             <option value="">Chọn phòng ban</option>
                                             @foreach ($departments as $department)
-                                                <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                                <option value="{{ $department->id }}" data-parent="{{ $department->parent_id }}">
+                                                    {{ $department->name }}
+                                                </option>
                                                 @if (count($department->children))
                                                     @include('fe_department.department_children', ['children' => $department->children, 'prefix' => '--'])
                                                 @endif
                                             @endforeach
                                         </select>
-                                        @error('department_id')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
                                     </div>
-    
-                                    <div class="form-group">
-                                        <label for="salary_id">Chọn hệ số lương</label>
-                                        <select name="salary_id" id="salary_id" class="form-control">
-                                            @foreach ($salaries as $salary)
-                                                <option value="{{ $salary->id }}" data-department="{{ $salary->department_id }}" {{ $user->salary_id == $salary->id ? 'selected' : '' }}>
+                                    
+                                    <div class="form-group mb-3">
+                                        <label for="salary_id">Hệ số lương <span class="text-danger">*</span></label>
+                                        <select name="salary_id" id="salary_id" class="form-control" required>
+                                            <option value="">-- Chọn hệ số lương --</option>
+                                            @foreach($salaries as $salary)
+                                                <option value="{{ $salary->id }}" 
+                                                    {{ old('salary_id', $user->salary_id) == $salary->id ? 'selected' : '' }}>
                                                     {{ $salary->salaryCoefficient }}
                                                 </option>
                                             @endforeach
                                         </select>
                                     </div>
+                
+                                    <!-- Status -->
                                     <div class="form-group">
                                         <label for="status">Trạng thái:</label>
                                         <select class="form-control" id="status" name="status" required>
-                                            <option value="1" {{ $user->status ? 'selected' : '' }}>Hoạt động</option>
-                                            <option value="0" {{ !$user->status ? 'selected' : '' }}>Vô hiệu hóa</option>
+                                            <option value="1" {{ old('status', $user->status) == '1' ? 'selected' : '' }}>Hoạt động</option>
+                                            <option value="0" {{ old('status', $user->status) == '0' ? 'selected' : '' }}>Vô hiệu hóa</option>
                                         </select>
+                                        @error('status')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
                                     </div>
                                 </div>
+                
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
                                     <button type="submit" class="btn btn-success">Lưu thay đổi</button>
                                 </div>
                             </form>
+                
+                            <!-- Hiển thị lỗi xác thực -->
                             @if ($errors->any())
-                                <div class="alert alert-danger">
+                                <div class="alert alert-danger mt-3">
                                     <ul>
                                         @foreach ($errors->all() as $error)
                                             <li>{{ $error }}</li>
@@ -190,6 +204,8 @@
                         </div>
                     </div>
                 </div>
+                
+                
                 
                 <footer class="sticky-footer bg-white">
                     <div class="container my-auto">
@@ -212,90 +228,67 @@
     <!-- Custom scripts for all pages-->
     <script src="/fe-access/js/sb-admin-2.min.js"></script>
 
-    <!-- Custom Script for filtering salary options based on department selection -->
+    
+   
+
     {{-- <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var departmentSelect = document.getElementById('department_id');
-            var salarySelect = document.getElementById('salary_id');
-            var allSalaries = [...salarySelect.options];
-
-            departmentSelect.addEventListener('change', function() {
-                var selectedDepartment = departmentSelect.value;
-                salarySelect.innerHTML = '';
-
-                allSalaries.forEach(function(option) {
-                    if (option.dataset.department === selectedDepartment || option.dataset.department === '') {
-                        salarySelect.appendChild(option);
-                    }
-                });
-            });
-
-            // Trigger the change event to initially populate salary options
-            departmentSelect.dispatchEvent(new Event('change'));
-        });
-    </script> --}}
-    <script>
-        const departmentDropdown = document.getElementById('department-dropdown');
-        const departmentPath = document.getElementById('department-path');
+   document.getElementById('department_id').addEventListener('change', function() {
+    const departmentId = this.value;
+    const salarySelect = document.getElementById('salary_id');
     
-        departmentDropdown.addEventListener('change', function () {
-            const selectedValue = this.value;
-            const selectedText = this.options[this.selectedIndex].text;
-    
-            if (!selectedValue) return;
-    
-            // Gửi yêu cầu lấy danh sách phòng ban con
-            fetch(`/departments/${selectedValue}/children`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.length > 0) {
-                        // Xóa các tùy chọn hiện tại, giữ lại "Chọn phòng ban"
-                        departmentDropdown.innerHTML = '<option value="">Chọn phòng ban</option>';
-    
-                        // Thêm các phòng ban con
-                        data.forEach(department => {
-                            const option = document.createElement('option');
-                            option.value = department.id;
-                            option.textContent = `${selectedText} -> ${department.name}`;
-                            departmentDropdown.appendChild(option);
-                        });
-    
-                        // Cập nhật danh sách hiển thị phân cấp
-                        const li = document.createElement('li');
-                        li.textContent = selectedText;
-                        li.dataset.id = selectedValue;
-                        departmentPath.appendChild(li);
-                    } else {
-                        alert('Phòng ban này không có cấp con.');
-                    }
-                })
-                .catch(error => console.error('Lỗi khi tải phòng ban con:', error));
-        });
-    
-        // Khi nhấn vào đường dẫn để quay lại cấp trên
-        departmentPath.addEventListener('click', function (event) {
-            if (event.target.tagName === 'LI') {
-                const selectedId = event.target.dataset.id;
-    
-                // Xóa các cấp con sau cấp vừa chọn
-                while (event.target.nextSibling) {
-                    event.target.nextSibling.remove();
-                }
-    
-                // Gửi yêu cầu để hiển thị lại cấp hiện tại
-                fetch(`/departments/${selectedId}/children`)
-                    .then(response => response.json())
-                    .then(data => {
-                        departmentDropdown.innerHTML = '<option value="">Chọn phòng ban</option>';
-                        data.forEach(department => {
-                            const option = document.createElement('option');
-                            option.value = department.id;
-                            option.textContent = department.name;
-                            departmentDropdown.appendChild(option);
-                        });
+    if (departmentId) {
+        fetch(`/salaries/${departmentId}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data); // In ra kết quả để kiểm tra
+                salarySelect.innerHTML = '<option value="">-- Chọn hệ số lương --</option>';
+                if (data.salaries && data.salaries.length > 0) {
+                    data.salaries.forEach(salary => {
+                        salarySelect.innerHTML += `<option value="${salary.id}">${salary.salaryCoefficient}</option>`;
                     });
-            }
-        });
+                } else {
+                    salarySelect.innerHTML = '<option value="">-- Không có hệ số lương --</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching salaries:', error);
+                salarySelect.innerHTML = '<option value="">-- Không có hệ số lương --</option>';
+            });
+    } else {
+        salarySelect.innerHTML = '<option value="">-- Chọn hệ số lương --</option>';
+    }
+});
+    </script> --}}
+
+    <script>
+        document.getElementById('department_id').addEventListener('change', function() {
+    const departmentId = this.value;
+    const salarySelect = document.getElementById('salary_id');
+    
+    if (departmentId) {
+        fetch(`/salaries/${departmentId}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data); // Check the result in console
+                salarySelect.innerHTML = '<option value="">-- Chọn hệ số lương --</option>';
+                if (data.salaries && data.salaries.length > 0) {
+                    data.salaries.forEach(salary => {
+                        salarySelect.innerHTML += `<option value="${salary.id}">${salary.salaryCoefficient} - ${salary.monthlySalary} - ${salary.dailySalary}</option>`;
+                    });
+                } else {
+                    salarySelect.innerHTML = '<option value="">-- Không có hệ số lương --</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching salaries:', error);
+                salarySelect.innerHTML = '<option value="">-- Không có hệ số lương --</option>';
+            });
+    } else {
+        salarySelect.innerHTML = '<option value="">-- Chọn hệ số lương --</option>';
+    }
+});
     </script>
+    
+    
 </body>
 </html>
