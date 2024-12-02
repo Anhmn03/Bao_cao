@@ -63,10 +63,14 @@
                                     <td>{{ isset($salaryLevel->monthlySalary) ? number_format($salaryLevel->monthlySalary, 0, ',', '.') . ' VND' : 'Chưa có lương tháng' }}</td>
                                 </tr>
                                 <tr>
+                                    <th>Lương Hàng Ngày:</th>
+                                    <td>{{ isset($salaryLevel->dailySalary) ? number_format($salaryLevel->dailySalary, 0, ',', '.') . ' VND' : 'Chưa có lương ngày' }}</td>
+                                </tr>
+                                <tr>
                                     <th>Phòng Ban:</th>
                                     <td>{{ $salaryLevel->department->name ?? 'Chưa có phòng ban' }}</td>
                                 </tr>
-                                <tr>
+                                {{-- <tr>
                                     <th>Trạng thái:</th>
                                     <td>
                                         @if ($salaryLevel->status == 1)
@@ -77,7 +81,7 @@
                                             Chưa xác định
                                         @endif
                                     </td>
-                                </tr>
+                                </tr> --}}
                                 <tr>
                                     <th>Người Tạo:</th>
                                     <td>{{ $creator->name ?? 'Không rõ' }}</td>
@@ -95,6 +99,15 @@
                                     <td>{{ $salaryLevel->updated_at ? $salaryLevel->updated_at->format('d/m/Y H:i') : 'Chưa có ngày cập nhật' }}</td>
                                 </tr>
                             </table>
+
+                            <!-- Người sử dụng bậc lương -->
+                            <h5>Người sử dụng bậc lương</h5>
+                            <ul>
+                                @foreach ($users as $user)
+                                    <li>{{ $user->email }}</li>
+                                @endforeach
+                            </ul>
+
                         </div>
                     </div>
 
@@ -126,7 +139,6 @@
                                             <label for="name">Tên cấp bậc</label>
                                             <input type="text" class="form-control" id="name" name="name" value="{{ $salaryLevel->name }}" required>
                                         </div>
-                                        
 
                                         <div class="form-group">
                                             <label for="salaryCoefficient">Hệ số lương</label>
@@ -137,12 +149,16 @@
                                             <input type="text" class="form-control" id="monthlySalary" name="monthlySalary" value="{{ number_format($salaryLevel->monthlySalary, 0, '.', ',') }}" required>
                                         </div>
                                         <div class="form-group">
+                                            <label for="dailySalary">Lương tháng</label>
+                                            <input type="text" class="form-control" id="dailySalary" name="dailySalary" value="{{ number_format($salaryLevel->dailySalary, 0, '.', ',') }}" required>
+                                        </div>
+                                        {{-- <div class="form-group">
                                             <label for="status">Trạng thái</label>
                                             <select class="form-control" id="status" name="status" required>
                                                 <option value="1" {{ $salaryLevel->status == 1 ? 'selected' : '' }}>Hoạt động</option>
                                                 <option value="0" {{ $salaryLevel->status == 0 ? 'selected' : '' }}>Vô hiệu hóa</option>
                                             </select>
-                                        </div>
+                                        </div> --}}
                                         <button type="submit" class="btn btn-primary">Cập nhật</button>
                                     </form>
                                 </div>
@@ -166,7 +182,28 @@
     <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
     </a>
+    {{-- <script>
+        const cleaveMonthly = new Cleave('#monthlySalary', {
+            numeral: true,
+            numeralThousandsGroupStyle: 'thousand',
+            numeralDecimalScale: 2,
+            noImmediatePrefix: true
+        });
+
+        const monthlyInput = document.getElementById('monthlySalary');
+        const monthlyDisplay = document.getElementById('monthly_display');
+
+        monthlyInput.addEventListener('input', () => {
+            monthlyDisplay.textContent = `Bạn đã nhập: ${monthlyInput.value}`;
+        });
+
+        document.querySelector('form').addEventListener('submit', function (event) {
+            const cleanedSalary = monthlyInput.value.replace(/[^0-9.]/g, ''); 
+            monthlyInput.value = cleanedSalary;
+        });
+    </script> --}}
     <script>
+        // Cleave.js initialization for Monthly Salary
         const cleaveMonthly = new Cleave('#monthlySalary', {
             numeral: true,
             numeralThousandsGroupStyle: 'thousand',
@@ -174,18 +211,40 @@
             noImmediatePrefix: true
         });
     
+        // Cleave.js initialization for Daily Salary
+        const cleaveDaily = new Cleave('#dailySalary', {
+            numeral: true,
+            numeralThousandsGroupStyle: 'thousand',
+            numeralDecimalScale: 2,
+            noImmediatePrefix: true
+        });
+    
+        // Monthly Salary input change event listener
         const monthlyInput = document.getElementById('monthlySalary');
         const monthlyDisplay = document.getElementById('monthly_display');
-    
         monthlyInput.addEventListener('input', () => {
             monthlyDisplay.textContent = `Bạn đã nhập: ${monthlyInput.value}`;
         });
     
+        // Daily Salary input change event listener
+        const dailyInput = document.getElementById('dailySalary');
+        const dailyDisplay = document.getElementById('daily_display');
+        dailyInput.addEventListener('input', () => {
+            dailyDisplay.textContent = `Bạn đã nhập: ${dailyInput.value}`;
+        });
+    
+        // Form submit event to clean up the inputs before submission
         document.querySelector('form').addEventListener('submit', function (event) {
-            const cleanedSalary = monthlyInput.value.replace(/[^0-9.]/g, ''); 
-            monthlyInput.value = cleanedSalary;
+            // Clean the monthly salary input value
+            const cleanedMonthlySalary = monthlyInput.value.replace(/[^0-9.]/g, '');
+            monthlyInput.value = cleanedMonthlySalary;
+    
+            // Clean the daily salary input value
+            const cleanedDailySalary = dailyInput.value.replace(/[^0-9.]/g, '');
+            dailyInput.value = cleanedDailySalary;
         });
     </script>
+    
     <!-- Bootstrap core JavaScript-->
     <script src="fe-access/vendor/jquery/jquery.min.js"></script>
     <script src="fe-access/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

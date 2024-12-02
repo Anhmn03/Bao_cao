@@ -79,6 +79,25 @@
                                 Bạn đã nhập: 0 ₫
                             </small>
                         </div>
+                        <!-- Lương ngày -->
+                        <div class="mb-3">
+                            <label for="dailySalary" class="form-label">Lương Ngày:</label>
+                             <input type="text" name="dailySalary" id="dailySalary" 
+                                    class="form-control money-input" placeholder="Nhập lương ngày" required>
+                            <small id="daily_display" class="form-text text-muted">
+                                  Bạn đã nhập: 0 ₫
+                             </small>
+                        </div>
+
+
+                        {{-- Tinh trang --}}
+                        {{-- <div class="form-group">
+                            <label for="status">Trạng thái</label>
+                            <select name="status" id="status" class="form-control" required>
+                                <option value="1">Hieu luc</option>
+                                <option value="0">Khong hieu luc</option>
+                            </select>
+                        </div> --}}
 
                         {{-- Nút submit --}}
                         <div class="d-flex justify-content-between mt-4">
@@ -120,19 +139,38 @@
             numeralDecimalScale: 2,
             noImmediatePrefix: true
         });
-    
-        const monthlyInput = document.getElementById('monthlySalary');
-        const monthlyDisplay = document.getElementById('monthly_display');
-    
-        monthlyInput.addEventListener('input', () => {
-            monthlyDisplay.textContent = `Bạn đã nhập: ${monthlyInput.value}`;
-        });
-    
-        document.querySelector('form').addEventListener('submit', function (event) {
-            const cleanedSalary = monthlyInput.value.replace(/[^0-9.]/g, ''); 
-            monthlyInput.value = cleanedSalary;
-        });
-    </script>
+     // Khởi tạo Cleave.js cho Lương Ngày
+     const cleaveDaily = new Cleave('#dailySalary', {
+        numeral: true,
+        numeralThousandsGroupStyle: 'thousand',
+        numeralDecimalScale: 2,
+        noImmediatePrefix: true
+    });
+
+    // Hiển thị lương tháng
+    const monthlyInput = document.getElementById('monthlySalary');
+    const monthlyDisplay = document.getElementById('monthly_display');
+
+    monthlyInput.addEventListener('input', () => {
+        monthlyDisplay.textContent = `Bạn đã nhập: ${monthlyInput.value}`;
+    });
+
+    // Hiển thị lương ngày
+    const dailyInput = document.getElementById('dailySalary');
+    const dailyDisplay = document.getElementById('daily_display');
+
+    dailyInput.addEventListener('input', () => {
+        dailyDisplay.textContent = `Bạn đã nhập: ${dailyInput.value}`;
+    });
+
+    // Làm sạch giá trị trước khi submit
+    document.querySelector('form').addEventListener('submit', function (event) {
+        const cleanedMonthlySalary = monthlyInput.value.replace(/[^0-9.]/g, '');
+        const cleanedDailySalary = dailyInput.value.replace(/[^0-9.]/g, '');
+        monthlyInput.value = cleanedMonthlySalary;
+        dailyInput.value = cleanedDailySalary;
+    });
+</script>
     
 </body>
 </html>
