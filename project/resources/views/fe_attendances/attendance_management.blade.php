@@ -16,6 +16,11 @@
     <link href="/fe-access/css/sb-admin-2.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 
+
+
+
+
+
     <style>
         body {
             background-color: #f8f9fc;
@@ -71,8 +76,38 @@
                         </div>
                     @endif
 
-                    <h3 class="mb-4">Quản lý các trường hợp không hợp lệ</h3>
-
+                    <h3 class="mb-4 text-center">Quản lý các trường hợp không hợp lệ</h3>
+                    <form method="GET" action="{{ route('admin.manageAttendances') }}" class="p-4 border rounded bg-light">
+                        <div class="row g-3 align-items-center">
+                            <!-- Tìm theo tên -->
+                            <div class="col-md-4">
+                                <label for="name" class="form-label">Tìm theo tên</label>
+                                <input type="text" name="name" id="name" class="form-control" 
+                                       value="{{ request('name') }}" placeholder="Nhập tên">
+                            </div>
+                    
+                            <!-- Tìm từ ngày -->
+                            <div class="col-md-4">
+                                <label for="date_from" class="form-label">Từ ngày</label>
+                                <input type="date" name="date_from" id="date_from" class="form-control" 
+                                       value="{{ request('date_from') }}">
+                            </div>
+                    
+                            <!-- Tìm đến ngày -->
+                            <div class="col-md-4">
+                                <label for="date_to" class="form-label">Đến ngày</label>
+                                <input type="date" name="date_to" id="date_to" class="form-control" 
+                                       value="{{ request('date_to') }}">
+                            </div>
+                        </div>
+                    
+                        <!-- Nút tìm kiếm -->
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                            <a href="{{ route('admin.manageAttendances') }}" class="btn btn-secondary">Xóa bộ lọc</a>
+                        </div>
+                    </form>
+                    
                     <!-- Table -->
                     <table class="table table-bordered table-striped">
                         <thead>

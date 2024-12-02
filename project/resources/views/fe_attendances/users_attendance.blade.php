@@ -10,10 +10,13 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Danh sách người dùng</title>
-
+    {{-- <script src="fe-access/vendor/jquery/jquery.min.js"></script> --}}
+    {{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> --}}
     <!-- Custom fonts for this template-->
-    <link href="fe-access/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    {{-- <link href="fe-access/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css"> --}}
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template-->
     <link href="fe-access/css/sb-admin-2.min.css" rel="stylesheet">
@@ -74,9 +77,10 @@
                         </form>
                     
                         <!-- Đặt thời gian button -->
-                        <button type="button" class="btn btn-primary align-self-end " style="margin-left: 10px" data-bs-toggle="modal" data-bs-target="#reminderModal">
+                        <button type="button" class="btn btn-primary align-self-end" data-bs-toggle="modal" data-bs-target="#reminderModal">
                             Đặt thời gian
                         </button>
+                        
                     </div>
                     <!-- Lịch sử Check In/Out -->
                     <div class="d-flex justify-content-between mb-4">
@@ -123,10 +127,20 @@
                                     @elseif ($attendance->status == 1)
                                         <span class="badge badge-success">Hợp lệ</span>
                                     @elseif ($attendance->status == 2)
-                                        <span class="badge badge-info">Lý do đã được chấp nhận</span>
+                                        <span class="badge badge-info">Đang xử lý</span>
                                     @elseif ($attendance->status == 3)
-                                        <span class="badge badge-warning">Lý do đã bị từ chối</span>
+                                        <span class="badge badge-warning">Không hợp lệ</span>
+                                      
                                     @endif
+                                    {{-- @if($attendance->status == 0)
+    <span class="badge bg-warning">Chờ xét duyệt</span>
+@elseif($attendance->status == 1)
+    <span class="badge bg-primary">Hợp lệ</span>
+@elseif($attendance->status == 2)
+    <span class="badge bg-success">Hợp lệ</span>
+@elseif($attendance->status == 3)
+    <span class="badge bg-danger">Không hợp lệ</span>
+@endif --}}
                                     {{-- {{ dd($attendance->status) }} --}}
                                 </td>
                                 <td>
@@ -275,6 +289,14 @@
         // Đặt nội dung giải trình vào modal hoặc hiển thị ở bảng nếu cần
         var justificationText = "{{ session('justification') }}";
         document.getElementById('justificationDisplay-' + modalId).textContent = justificationText;
+    }
+});
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+    var reminderModal = document.getElementById("reminderModal");
+    if (!reminderModal) {
+        console.error("Modal 'reminderModal' không tồn tại.");
     }
 });
     </script>
