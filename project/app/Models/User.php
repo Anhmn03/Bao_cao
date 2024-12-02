@@ -57,6 +57,8 @@ class User extends Authenticatable
         'password' => 'hashed',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'reminder_time' => 'datetime:H:i:s', // Đảm bảo kiểu thời gian
+
     ];
     public function department() {
         return $this->belongsTo(Department::class, 'department_id', 'id');
@@ -77,5 +79,8 @@ public function salary()
 {
     return $this->belongsTo(Salary::class, 'salary_id', 'id');
 }
-
+public function salaryHistories()
+{
+    return $this->hasMany(Salary_histories::class, 'user_id');
+}
 }

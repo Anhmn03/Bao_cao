@@ -14,6 +14,7 @@ class Salary extends Model
         'department_id',
         'salaryCoefficient',
         'monthlySalary',
+        'dailySalary',
         'status',
         'created_by',
         'updated_by',
@@ -39,4 +40,12 @@ class Salary extends Model
        {
            return $this->belongsTo(User::class, 'updated_by');
        }
+       public function users()
+       {
+           return $this->hasMany(User::class, 'salary_id'); // salary_id là khóa ngoại trong bảng users
+       }
+       public function salaryHistories()
+{
+    return $this->hasMany(Salary_histories::class, 'salary_id');
+}
 }
