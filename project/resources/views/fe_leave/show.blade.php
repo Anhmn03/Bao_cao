@@ -232,11 +232,61 @@
         </div>
     </div>
 
-{{-- <script>
+
+
+
+<script>
+
+//    document.addEventListener('DOMContentLoaded', function () {
+//     const reasonSelect = document.getElementById('reason');
+//     const otherReasonContainer = document.getElementById('otherReasonContainer');
+//     const otherReasonInput = document.getElementById('other_reason');
+//     const startDateInput = document.getElementById('start_date');
+//     const endDateInput = document.getElementById('end_date');
+
+//     reasonSelect.addEventListener('change', function () {
+//         const reason = this.value;
+//         const startDate = new Date(startDateInput.value);
+
+//         if (reason === 'Nghỉ thai sản' || reason === 'Nghỉ kết hôn') {
+//             if (startDateInput.value) {
+//                 let endDate = new Date(startDate);
+//                 if (reason === 'Nghỉ thai sản') {
+//                     // Nghỉ thai sản: +180 ngày
+//                     endDate.setDate(endDate.getDate() + 180);
+//                 } else if (reason === 'Nghỉ kết hôn') {
+//                     // Nghỉ kết hôn: +3 ngày
+//                     endDate.setDate(endDate.getDate() + 3);
+//                 }
+//                 // Cập nhật ngày kết thúc tự động
+//                 endDateInput.value = endDate.toISOString().split('T')[0];
+//                 endDateInput.readOnly = true; // Khóa ngày kết thúc
+//             } else {
+//                 // Nếu ngày bắt đầu chưa được chọn
+//                 alert('Vui lòng chọn ngày bắt đầu trước.');
+//                 reasonSelect.value = ''; // Reset lựa chọn lý do
+//             }
+//         } else {
+//             // Xử lý trường hợp không phải nghỉ thai sản, nghỉ kết hôn
+//             endDateInput.value = ''; // Xóa ngày kết thúc tự động trước đó
+//             endDateInput.readOnly = false; // Mở khóa ngày kết thúc
+//             otherReasonContainer.style.display = reason === 'Khác' ? 'block' : 'none'; // Chỉ hiển thị khi chọn "Khác"
+//             otherReasonInput.required = reason === 'Khác'; // Chỉ yêu cầu khi chọn "Khác"
+//         }
+//     });
+
+//     startDateInput.addEventListener('change', function () {
+//         if (new Date(startDateInput.value) > new Date(endDateInput.value)) {
+//             alert("Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu!");
+//             endDateInput.value = ''; // Xóa giá trị không hợp lệ
+//         }
+//     });
+// });
+
 document.addEventListener('DOMContentLoaded', function () {
     const reasonSelect = document.getElementById('reason');
-    const otherReasonContainer = document.getElementById('otherReasonContainer');
-    const otherReasonInput = document.getElementById('other_reason');
+    const otherReasonContainer = document.getElementById('other-reason-group'); // Updated ID here
+    const otherReasonInput = document.getElementById('other-reason');
     const startDateInput = document.getElementById('start_date');
     const endDateInput = document.getElementById('end_date');
 
@@ -248,104 +298,32 @@ document.addEventListener('DOMContentLoaded', function () {
             if (startDateInput.value) {
                 let endDate = new Date(startDate);
                 if (reason === 'Nghỉ thai sản') {
-                    // Nghỉ thai sản: +180 ngày
-                    endDate.setDate(endDate.getDate() + 180);
+                    endDate.setDate(endDate.getDate() + 180); // +180 days for maternity leave
                 } else if (reason === 'Nghỉ kết hôn') {
-                    // Nghỉ kết hôn: +3 ngày
-                    endDate.setDate(endDate.getDate() + 3);
+                    endDate.setDate(endDate.getDate() + 3); // +3 days for wedding leave
                 }
-                // Cập nhật ngày kết thúc tự động
-                endDateInput.value = endDate.toISOString().split('T')[0];
-                endDateInput.readOnly = true; // Không cho phép chỉnh sửa ngày kết thúc
+                endDateInput.value = endDate.toISOString().split('T')[0]; // Automatically set end date
+                endDateInput.readOnly = true; // Lock the end date
             } else {
-                // Nếu ngày bắt đầu chưa được chọn
                 alert('Vui lòng chọn ngày bắt đầu trước.');
-                reasonSelect.value = ''; // Reset lựa chọn lý do
+                reasonSelect.value = ''; // Reset reason selection if start date isn't selected
             }
-        } else if (reason === 'Khác') {
-            // Hiển thị ô nhập lý do khác khi chọn "Khác"
-            otherReasonContainer.style.display = 'block';
-            otherReasonInput.required = true;
         } else {
-            // Ẩn ô nhập lý do khác nếu không chọn "Khác"
-            otherReasonContainer.style.display = 'none';
-            otherReasonInput.required = false;
-
-            // Kiểm tra nếu người dùng không chọn lý do nghỉ thì không cho phép tiếp tục
-            if (!startDateInput.value || !endDateInput.value) {
-                alert("Vui lòng chọn ngày bắt đầu và ngày kết thúc.");
-            }
+            endDateInput.value = ''; // Clear end date if no reason selected
+            endDateInput.readOnly = false; // Unblock the end date field
+            otherReasonContainer.style.display = reason === 'Khác' ? 'block' : 'none'; // Show input field for "Khác"
+            otherReasonInput.required = reason === 'Khác'; // Make the other reason input required if "Khác" is selected
         }
     });
 
     startDateInput.addEventListener('change', function () {
         if (new Date(startDateInput.value) > new Date(endDateInput.value)) {
-            alert("Ngày kết thúc phải lớn hơn ngày bắt đầu!");
+            alert("Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu!");
+            endDateInput.value = ''; // Clear invalid end date
         }
     });
 });
 
-
-</script> --}}
-
-{{-- <script>
-    // Hàm xử lý thay đổi lựa chọn lý do
-    function handleReasonChange() {
-        const reasonSelect = document.getElementById('reason');
-        const otherReasonContainer = document.getElementById('otherReasonContainer');
-
-        if (reasonSelect.value === "Khác") {
-            otherReasonContainer.style.display = "block"; // Hiển thị ô nhập lý do khác
-        } else {
-            otherReasonContainer.style.display = "none"; // Ẩn ô nhập lý do khác
-        }
-    }
-
-    // Gắn sự kiện khi tài liệu đã sẵn sàng
-    document.addEventListener('DOMContentLoaded', function () {
-        const reasonSelect = document.getElementById('reason');
-        reasonSelect.addEventListener('change', handleReasonChange); // Gọi hàm khi thay đổi lựa chọn lý do
-        handleReasonChange(); // Gọi hàm ngay khi trang load, để kiểm tra nếu lý do đã được chọn là "Khác"
-    });
-</script> --}}
-
-<script>
-    // function handleReasonChange() {
-    //     const reasonSelect = document.getElementById('reason');
-    //     const otherReasonContainer = document.getElementById('otherReasonContainer');
-
-    //     if (reasonSelect.value === "Khác") {
-    //         otherReasonContainer.style.display = "block";
-    //     } else {
-    //         otherReasonContainer.style.display = "none";
-    //     }
-    // }
-
-    // document.addEventListener('DOMContentLoaded', function () {
-    //     const reasonSelect = document.getElementById('reason');
-    //     reasonSelect.addEventListener('change', handleReasonChange);
-    //     handleReasonChange(); // Kiểm tra giá trị khi tải trang
-    // });
-    // Khi lý do được thay đổi
-document.getElementById('reason').addEventListener('change', function () {
-    var reason = this.value;
-    var otherReasonGroup = document.getElementById('other-reason-group');
-
-    // Kiểm tra nếu lý do là "Khác"
-    if (reason === 'Khác') {
-        otherReasonGroup.style.display = 'block';  // Hiển thị ô nhập lý do khác
-    } else {
-        otherReasonGroup.style.display = 'none';  // Ẩn ô nhập lý do khác
-    }
-});
-
-// Kiểm tra nếu đã điền lý do "Khác" khi load trang
-window.onload = function () {
-    var reason = document.getElementById('reason').value;
-    if (reason === 'Khác') {
-        document.getElementById('other-reason-group').style.display = 'block';
-    }
-};
 
 </script>
 

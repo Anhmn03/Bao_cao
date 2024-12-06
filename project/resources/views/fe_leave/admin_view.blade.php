@@ -57,11 +57,11 @@
                                     <td>{{ $request->start_date }}</td>
                                     <td>{{ $request->end_date }}</td>
                                     <td>
-                                        @if ($request->status === 'Pending')
+                                        @if ($request->status === '0')
                                             <span class="badge bg-warning">Đang chờ</span>
-                                        @elseif ($request->status === 'Accepted')
+                                        @elseif ($request->status === '1')
                                             <span class="badge bg-success">Đã chấp nhận</span>
-                                        @elseif ($request->status === 'Rejected')
+                                        @elseif ($request->status === '2')
                                             <span class="badge bg-danger">Đã từ chối</span>
                                         @endif
                                     </td>
