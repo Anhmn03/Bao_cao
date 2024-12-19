@@ -89,6 +89,47 @@
                             <h2 class="mt-4 mb-4">Thống kê nhân sự</h2>
                             <p class="text-muted">Biểu đồ thể hiện số lượng nhân viên và phân bổ độ tuổi trong các phòng ban.</p>
                             <p class="text-muted">Ngày cập nhật: {{ now()->format('d/m/Y') }}</p>
+                            <form method="GET" action="{{ route('userDepChart') }}">
+                                
+                                <label for="department_id">Chọn phòng ban:</label>
+                                <select name="department_id" id="department_id" onchange="this.form.submit()">
+                                    <option value="">Tất cả</option>
+                                    
+                                    @foreach($departments as $department)
+    @if($department->parent_id == null)  <!-- Phòng ban cấp cao -->
+        <option value="{{ $department->id }}"
+                @if(isset($selectedDepartmentId) && $selectedDepartmentId == $department->id) selected @endif>
+            {{ $department->name }}
+        </option>
+        <!-- Hiển thị các phòng ban con với dấu phân cấp -->
+        @foreach($departments as $childDepartment)
+            @if($childDepartment->parent_id == $department->id)
+                <option value="{{ $childDepartment->id }}"
+                        @if(isset($selectedDepartmentId) && $selectedDepartmentId == $childDepartment->id) selected @endif>
+                    {{-- Thêm dấu "-" để phân cấp --}}
+                    &nbsp;&nbsp;- {{ $childDepartment->name }}
+                </option>
+                <!-- Nếu phòng ban có con nữa, tiếp tục đệ quy -->
+                @foreach($departments as $subChildDepartment)
+                    @if($subChildDepartment->parent_id == $childDepartment->id)
+                        <option value="{{ $subChildDepartment->id }}"
+                                @if(isset($selectedDepartmentId) && $selectedDepartmentId == $subChildDepartment->id) selected @endif>
+                            {{-- Thêm dấu "--" để phân cấp sâu hơn --}}
+                            &nbsp;&nbsp;&nbsp;&nbsp;-- {{ $subChildDepartment->name }}
+                        </option>
+                    @endif
+                @endforeach
+            @endif
+        @endforeach
+    @endif
+@endforeach
+
+                                
+                                   
+                                </select>
+                                <button type="submit">Lọc</button>
+                            </form>
+                            
                             <canvas id="employeeChart"></canvas>
                         </div>
                         <div class="chart-legend" id="employeeLegend"></div>
@@ -146,6 +187,93 @@
     
   
         <script>
+//             // Đăng ký plugin ChartDataLabels
+// Chart.register(ChartDataLabels);
+
+// // Kiểm tra dữ liệu biểu đồ
+// const employeeLabels = @json($labels);
+// const employeeData = @json($employeeData);
+// const employeeColors = @json($colors);
+
+// // Nếu không có dữ liệu, hiển thị thông báo
+// if (!employeeLabels.length || !employeeData.length) {
+//     document.getElementById('employeeChart').style.display = 'none';
+//     document.getElementById('employeeLegend').innerHTML = "<p>Không có dữ liệu để hiển thị.</p>";
+// } else {
+//     // Tạo biểu đồ tròn
+//     const employeeChart = new Chart(document.getElementById('employeeChart'), {
+//         type: 'pie',
+//         data: {
+//             labels: employeeLabels,
+//             datasets: [{
+//                 label: 'Số lượng nhân viên',
+//                 data: employeeData,
+//                 backgroundColor: employeeColors,
+//                 borderWidth: 0, // Loại bỏ viền của biểu đồ
+//             }]
+//         },
+//         options: {
+//             responsive: true,
+//             plugins: {
+//                 legend: { display: false }, // Ẩn chú thích mặc định
+//                 datalabels: {
+//                     formatter: (value, ctx) => {
+//                         let total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+//                         if (value === 0) return ''; // Không hiển thị nếu giá trị là 0
+//                         return ((value / total) * 100).toFixed(1) + "%"; // Hiển thị phần trăm
+//                     },
+//                     color: '#fff', // Màu chữ hiển thị
+//                     font: { size: 14 } // Kích thước chữ
+//                 }
+//             },
+//             layout: {
+//                 padding: 0 // Loại bỏ padding dư thừa
+//             }
+//         }
+//     });
+// }
+
+//     // Custom Legend (Chú thích tùy chỉnh)
+//     const employeeLegend = document.getElementById('employeeLegend');
+//     employeeLegend.style.display = "flex";
+//     employeeLegend.style.flexDirection = "column"; // Chú thích xếp theo cột
+//     employeeLegend.style.alignItems = "flex-start";
+//     employeeLegend.style.marginTop = "15px";
+//     employeeLegend.style.padding = "10px";
+//     employeeLegend.style.backgroundColor = "#f9f9f9"; // Nền sáng
+//     employeeLegend.style.borderRadius = "8px"; // Bo góc
+//     employeeLegend.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)"; // Bóng đổ
+
+//     // Lặp qua từng phần dữ liệu để tạo chú thích
+//     employeeLabels.forEach((label, index) => {
+//         const legendItem = document.createElement('div');
+//         legendItem.style.display = "flex";
+//         legendItem.style.alignItems = "center";
+//         legendItem.style.marginBottom = "10px"; // Khoảng cách giữa các chú thích
+
+//         // Tạo hộp màu
+//         const colorBox = document.createElement('span');
+//         colorBox.style.width = "20px";
+//         colorBox.style.height = "20px";
+//         colorBox.style.backgroundColor = employeeColors[index];
+//         colorBox.style.display = "inline-block";
+//         colorBox.style.marginRight = "12px";
+//         colorBox.style.borderRadius = "50%";
+
+//         // Tạo nhãn
+//         const labelText = document.createElement('span');
+//         labelText.style.fontSize = "16px"; // Tăng kích thước chữ
+//         labelText.style.fontWeight = "bold";
+//         labelText.style.color = "#333";
+//         labelText.innerText = `${label}: ${employeeData[index]} nhân viên`;
+
+//         // Thêm hộp màu và nhãn vào legend
+//         legendItem.appendChild(colorBox);
+//         legendItem.appendChild(labelText);
+//         employeeLegend.appendChild(legendItem);
+//     });
+
+
     Chart.register(ChartDataLabels);
 
     // Dữ liệu biểu đồ số lượng nhân viên (Pie Chart)
@@ -188,38 +316,6 @@
             }
         }
     });
-    
-
-    // // Tạo chú thích tùy chỉnh cho biểu đồ pie
-    // const employeeLegend = document.getElementById('employeeLegend');
-    // employeeLegend.style.display = "flex";
-    // employeeLegend.style.flexDirection = "column"; // Căn chỉnh theo cột
-    // employeeLegend.style.alignItems = "start";
-    // employeeLegend.style.marginTop = "10px";
-
-    // employeeLabels.forEach((label, index) => {
-    //     const legendItem = document.createElement('div');
-    //     legendItem.style.display = "flex";
-    //     legendItem.style.alignItems = "center";
-    //     legendItem.style.marginBottom = "5px"; // Khoảng cách nhỏ giữa các chú thích
-
-    //     const colorBox = document.createElement('span');
-    //     colorBox.style.width = "12px";
-    //     colorBox.style.height = "12px";
-    //     colorBox.style.backgroundColor = employeeColors[index];
-    //     colorBox.style.display = "inline-block";
-    //     colorBox.style.marginRight = "8px";
-    //     colorBox.style.borderRadius = "50%"; // Làm tròn hộp màu
-
-    //     const labelText = document.createElement('span');
-    //     labelText.style.fontSize = "14px";
-    //     labelText.style.color = "#333";
-    //     labelText.innerText = `${label}: ${employeeData[index]}`;
-
-    //     legendItem.appendChild(colorBox); // Thêm hộp màu
-    //     legendItem.appendChild(labelText); // Thêm nhãn
-    //     employeeLegend.appendChild(legendItem); // Thêm vào container chú thích
-    // });
 
     // Tạo chú thích tùy chỉnh cho biểu đồ pie
 const employeeLegend = document.getElementById('employeeLegend');
